@@ -4,25 +4,20 @@
 
 ## Build Setup
 
-``` bash
-# install dependencies
+安装依赖：
+
+```bush
 npm install
+```
 
-# serve with hot reload at localhost:8080
-npm run dev
+或者（强烈建议使用此命令）：
 
-# build for production with minification
-npm run build
+```bush
+npm install --no-shrinkwrap --no-bin-links --no-optional
+```
 
-# build for production and view the bundle analyzer report
-npm run build --report
+如果速度非常慢，可以换淘宝的源：
 
-# run unit tests
-npm run unit
-
-# run e2e tests
-npm run e2e
-
-# run all tests
-npm test
+```bush
+npm install --no-shrinkwrap --no-bin-links --no-optional --registry=https://registry.npm.taobao.org
 ```
