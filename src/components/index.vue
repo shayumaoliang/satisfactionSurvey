@@ -1,7 +1,6 @@
 <template>
   <div class="layout">
-    <Menu mode="horizontal" theme="light" active-name="1">
-      <!-- <div class="layout-logo"></div> -->
+    <Menu class="nuv-menu" mode="horizontal" theme="light">
         <span class="logo">客户满意度调查</span>
     </Menu>
     <div class="layout-content">
@@ -48,7 +47,6 @@
                     报表
                   </h2>
                   <Table :columns="reportFormColumn" :data="reportFormData" @on-row-click="showReportFormDetail"></Table>
-                  <!-- <IEcharts :option="cpuStatus" class="echarts"></IEcharts> -->
                 </Card>
                 <Card v-if="showFirstChart">
                   <template slot="title">
@@ -63,7 +61,10 @@
                   <h2 class="title">
                     详情
                   </h2>
-                    <div id="firstReportChart" style="height:300px;width:80%"></div>
+                    <div class="echarts">
+                    <IEcharts :option="reportOption"></IEcharts>
+                    </div>
+                    <div id="firstReportChart" style="height:350px;width:80%"></div>
                 </Card>
                 <Card v-if="showSecondChart">
                   <template slot="title">
@@ -79,6 +80,7 @@
                     详情
                   </h2>
                     <h1>第二张图表</h1>
+                    <div id="secondtReportChart" style="height:500px;width:80%"></div>
                 </Card>
                 <Modal
                   v-model="addDistributorDialog"
@@ -112,23 +114,68 @@
   export default {
     data () {
       return {
-        opinion: ['A', 'B', 'C', 'D', 'E'],
-        opinionData: [{
-          value: 26,
-          name: 'A'
-        }, {
-          value: 31,
-          name: 'B'
-        }, {
-          value: 18,
-          name: 'C'
-        }, {
-          value: 28,
-          name: 'D'
-        }, {
-          value: 21,
-          name: 'E'
-        }],
+        reportOption: {
+          backgroundColor: new echarts.graphic.RadialGradient(0.3, 0.3, 0.8, [{
+            offset: 0,
+            color: '#f7f8fa'
+          }, {
+            offset: 1,
+            color: '#cdd0d5'
+          }]),
+          title: {
+            text: '相似通话集合'
+          },
+          // legend: {
+          //   right: 10,
+          //   data: ['1990']
+          // },
+          xAxis: {
+            splitLine: {
+              lineStyle: {
+                type: 'dashed'
+              }
+            }
+          },
+          yAxis: {
+            splitLine: {
+              lineStyle: {
+                type: 'dashed'
+              }
+            },
+            scale: true
+          },
+          series: [{
+            // name: '1990',
+            data: [[1, 0, 1, '1'], [3, 1, 3, '3'], [3, 2, 3, '3'], [8, 3, 8, '8']],
+            type: 'scatter',
+            symbolSize: function (data) {
+              return data[2] * 10
+            },
+            label: {
+              emphasis: {
+                show: true,
+                formatter: function (param) {
+                  return param.data[3]
+                },
+                position: 'inside'
+              }
+            },
+            itemStyle: {
+              normal: {
+                shadowBlur: 10,
+                shadowColor: 'rgba(120, 36, 50, 0.5)',
+                shadowOffsetY: 5,
+                color: new echarts.graphic.RadialGradient(0.4, 0.3, 1, [{
+                  offset: 0,
+                  color: 'rgb(251, 118, 123)'
+                }, {
+                  offset: 1,
+                  color: 'rgb(204, 46, 72)'
+                }])
+              }
+            }
+          }]
+        },
         showSecondChart: false,
         voiceDataPath: null,
         voiceDataCheckLoading: true,
@@ -210,9 +257,31 @@
           name: null
         },
         projectIndex: null,
-        chartData: [
-          [[1, 1, 1000, '1'], [3, 2, 3000, '3'], [3, 3, 3000, '3'], [8, 4, 8000, '8']]
-        ]
+        chartData: [[1, 0, 1, '1'], [3, 1, 3, '3'], [3, 2, 3, '3'], [8, 3, 8, '8']],
+        graphData: {
+          nodes: [{
+            name: '1',
+            x: 10,
+            y: 10,
+            value: 10
+          }, {
+            name: '2',
+            x: 100,
+            y: 100,
+            value: 20,
+            symbolSize: 20,
+            itemStyle: {
+              normal: {
+                color: 'red'
+              }
+            }
+          }],
+          links: [{
+            source: '1',
+            target: '2'
+          }]
+        },
+        categories: ['1']
       }
     },
     methods: {
@@ -249,10 +318,9 @@
       showReportFormDetail (index) {
         this.showReportForm = false
         this.showFirstChart = true
-        // this.drewFirstReport()
-        this.$nextTick(function () {
-          this.drewFirstReport()
-        })
+        // this.$nextTick(function () {
+        //   this.drewFirstReport()
+        // })
       },
       selectProject (name) {
         this.projectIndex = name
@@ -286,6 +354,10 @@
           })
         }
       },
+      // newReportChart (id, option) {
+      //   const myChart = echarts.init(document.getElementById(id), 'macarons')
+      //   myChart.setOption(option)
+      // },
       drewFirstReport () {
         const myChart = echarts.init(document.getElementById('firstReportChart'), 'macarons')
         myChart.setOption({
@@ -323,7 +395,7 @@
             data: this.chartData[0],
             type: 'scatter',
             symbolSize: function (data) {
-              return Math.sqrt(data[2])
+              return data[2] * 10
             },
             label: {
               emphasis: {
@@ -331,7 +403,7 @@
                 formatter: function (param) {
                   return param.data[3]
                 },
-                position: 'top'
+                position: 'inside'
               }
             },
             itemStyle: {
@@ -351,120 +423,70 @@
           }]
         })
         myChart.on('click', function (params) {
-          this.showFirstChart = false
-          this.showSecondChart = true
-          console.log(params)
-          console.log('点击==================================》成功')
-          const myChart = echarts.init(document.getElementById('firstReportChart'), 'macarons')
-          myChart.setOption({
-            title: {
-              text: '人物关系：乔布斯',
-              subtext: '数据来自人立方',
-              x: 'right',
-              y: 'bottom'
-            },
-            tooltip: {
-              trigger: 'item',
-              formatter: '{a} : {b}'
-            },
-            toolbox: {
-              show: true,
-              feature: {
-                restore: {show: true},
-                magicType: {show: true, type: ['force', 'chord']},
-                saveAsImage: {show: true}
-              }
-            },
-            legend: {
-              x: 'left',
-              data: ['家人', '朋友']
-            },
-            series: [
-              {
-                type: 'force',
-                name: '人物关系',
-                ribbonType: false,
-                categories: [
-                  {
-                    name: '人物'
-                  },
-                  {
-                    name: '家人'
-                  },
-                  {
-                    name: '朋友'
-                  }
-                ],
-                itemStyle: {
-                  normal: {
-                    label: {
-                      show: true,
-                      textStyle: {
-                        color: '#333'
-                      }
-                    },
-                    nodeStyle: {
-                      brushType: 'both',
-                      borderColor: 'rgba(255,215,0,0.4)',
-                      borderWidth: 1
-                    },
-                    linkStyle: {
-                      type: 'curve'
+          setTimeout(function () {
+            console.log(params)
+            console.log('点击==================================》成功')
+            const myChart = echarts.getInstanceByDom(document.getElementById('firstReportChart'), 'macarons')
+            myChart.setOption({
+              title: {
+                text: '通话记录',
+                subtext: 'Default layout',
+                top: 'bottom',
+                left: 'right'
+              },
+              tooltip: {},
+              legend: [{
+                // selectedMode: 'single',
+                data: this.categories
+              }],
+              animationDuration: 1500,
+              animationEasingUpdate: 'quinticInOut',
+              series: [
+                {
+                  name: 'Les Miserables',
+                  type: 'graph',
+                  layout: 'none',
+                  data: [{
+                    name: '第一个通话',
+                    x: 10,
+                    y: 10,
+                    value: 10,
+                    symbolSize: 30
+                  }, {
+                    name: '第二个通话',
+                    x: 10,
+                    y: 20,
+                    value: 20,
+                    symbolSize: 30
+                    // itemStyle: {
+                    //   normal: {
+                    //     color: 'red'
+                    //   }
+                    // }
+                  }],
+                  links: [{
+                    source: '第一个通话',
+                    target: '第二个通话',
+                    weight: 1
+                  }],
+                  categories: '1',
+                  roam: true,
+                  label: {
+                    normal: {
+                      position: 'right',
+                      formatter: '{b}'
                     }
                   },
-                  emphasis: {
-                    label: {
-                      show: false
-                      // textStyle: null      // 默认使用全局文本样式，详见TEXTSTYLE
-                    },
-                    nodeStyle: {
-                      // r: 30
-                    },
-                    linkStyle: {}
+                  lineStyle: {
+                    normal: {
+                      color: 'source',
+                      curveness: 0.3
+                    }
                   }
-                },
-                useWorker: false,
-                minRadius: 15,
-                maxRadius: 25,
-                gravity: 1.1,
-                scaling: 1.1,
-                roam: 'move',
-                nodes: [
-                  {category: 0, name: '乔布斯', value: 10, label: '乔布斯\n（主要）'},
-                  {category: 1, name: '丽萨-乔布斯', value: 2},
-                  {category: 1, name: '保罗-乔布斯', value: 3},
-                  {category: 1, name: '克拉拉-乔布斯', value: 3},
-                  {category: 1, name: '劳伦-鲍威尔', value: 7},
-                  {category: 2, name: '史蒂夫-沃兹尼艾克', value: 5},
-                  {category: 2, name: '奥巴马', value: 8},
-                  {category: 2, name: '比尔-盖茨', value: 9},
-                  {category: 2, name: '乔纳森-艾夫', value: 4},
-                  {category: 2, name: '蒂姆-库克', value: 4},
-                  {category: 2, name: '龙-韦恩', value: 1}
-                ],
-                links: [
-                    {source: '丽萨-乔布斯', target: '乔布斯', weight: 1, name: '女儿'},
-                    {source: '保罗-乔布斯', target: '乔布斯', weight: 2, name: '父亲'},
-                    {source: '克拉拉-乔布斯', target: '乔布斯', weight: 1, name: '母亲'},
-                    {source: '劳伦-鲍威尔', target: '乔布斯', weight: 2},
-                    {source: '史蒂夫-沃兹尼艾克', target: '乔布斯', weight: 3, name: '合伙人'},
-                    {source: '奥巴马', target: '乔布斯', weight: 1},
-                    {source: '比尔-盖茨', target: '乔布斯', weight: 6, name: '竞争对手'},
-                    {source: '乔纳森-艾夫', target: '乔布斯', weight: 1, name: '爱将'},
-                    {source: '蒂姆-库克', target: '乔布斯', weight: 1},
-                    {source: '龙-韦恩', target: '乔布斯', weight: 1},
-                    {source: '克拉拉-乔布斯', target: '保罗-乔布斯', weight: 1},
-                    {source: '奥巴马', target: '保罗-乔布斯', weight: 1},
-                    {source: '奥巴马', target: '克拉拉-乔布斯', weight: 1},
-                    {source: '奥巴马', target: '劳伦-鲍威尔', weight: 1},
-                    {source: '奥巴马', target: '史蒂夫-沃兹尼艾克', weight: 1},
-                    {source: '比尔-盖茨', target: '奥巴马', weight: 6},
-                    {source: '比尔-盖茨', target: '克拉拉-乔布斯', weight: 1},
-                    {source: '蒂姆-库克', target: '奥巴马', weight: 1}
-                ]
-              }
-            ]
-          })
+                }
+              ]
+            })
+          }, 1000)
         })
       }
     },
@@ -477,9 +499,8 @@
   .layout{
       border: 1px solid #d7dde4;
       background: #f5f7f9;
-      min-height: 100%;
       box-sizing: border-box;
-      height: 100%;
+      min-height: 100%;
   }
   .data-check{
     overflow: auto;
@@ -518,9 +539,8 @@
       top: 15px;
       left: 20px;
   }
-  .layout-nav{
-      width: 420px;
-      margin: 0 auto;
+  .nuv-menu{
+    height: 10%;
   }
   .layout-assistant{
       width: 300px;
@@ -530,7 +550,7 @@
   .layout-content{
       height: 80%;
       margin: 15px;
-      overflow: hidden;
+      /* overflow: hidden; */
       background: #fff;
       border-radius: 4px;
   }
@@ -538,16 +558,15 @@
       padding: 10px;
   }
   .layout-copy{
+      height: 10%;
       text-align: center;
-      padding: 10px 0 5px;
+      padding: 0 0 0;
       color: #9ea7b4;
+      margin-top: 5px;
   }
   .echarts {
-    float: left;
-    margin-right: 0;
-    margin-left: 0;
-    width: 20%;
-    height: 160px;
+    width: 80%;
+    height: 400px;
   }
   .a-distributor{
     float: left;
