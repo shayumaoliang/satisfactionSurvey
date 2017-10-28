@@ -76,11 +76,11 @@
                   <div class="data-check">累计疑似通话 {{ '20' }}</div>
                   <h2 class="title">
                     详情
+                    <Button type="primary" class="back-button" size="small" @click="backToFirstChart">返回</Button>
                   </h2>
-                    <div class="echarts">
-                      <Button type="primary" class="back-button" size="small" @click="backToFirstChart">返回</Button>
-                      <IEcharts :option="recordOption" @click="checkRecord"></IEcharts>
-                    </div>
+                  <div class="echarts">
+                    <IEcharts :option="recordOption" @click="checkRecord"></IEcharts>
+                  </div>
                 </Card>
                 <Modal
                   v-model="addDistributorDialog"
@@ -420,8 +420,9 @@
     margin-bottom: 20px;
   }
   .back-button{
+    margin-right: 20%;
     float: right;
-    margin-bottom: 5px;
+    margin-bottom: 20px;
   }
   .layout-breadcrumb{
     padding: 10px 15px 0;
