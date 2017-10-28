@@ -62,16 +62,14 @@
                     详情
                   </h2>
                     <div class="echarts">
-                    <IEcharts :option="reportOption"></IEcharts>
+                    <IEcharts :option="reportOption" @click="checkRecordGroup"></IEcharts>
                     </div>
-                    <div id="firstReportChart" style="height:350px;width:80%"></div>
                 </Card>
                 <Card v-if="showSecondChart">
                   <template slot="title">
                     <Icon type="person-stalker"></Icon>
                     经销商名字
                     <Button type="primary" class="check-button" size="small" @click="backToReportFrom">返回</Button>
-                    <Button type="primary" class="check-button" size="small" @click="exportReport">导出报表</Button>
                   </template>
                   <div class="data-check">得分：{{ '九十分' }}</div>
                   <div class="data-check">累计检查通话数 {{ '5000' }}</div>
@@ -79,8 +77,10 @@
                   <h2 class="title">
                     详情
                   </h2>
-                    <h1>第二张图表</h1>
-                    <div id="secondtReportChart" style="height:500px;width:80%"></div>
+                    <div class="echarts">
+                      <Button type="primary" class="back-button" size="small" @click="backToFirstChart">返回</Button>
+                      <IEcharts :option="recordOption" @click="checkRecord"></IEcharts>
+                    </div>
                 </Card>
                 <Modal
                   v-model="addDistributorDialog"
@@ -125,10 +125,6 @@
           title: {
             text: '相似通话集合'
           },
-          // legend: {
-          //   right: 10,
-          //   data: ['1990']
-          // },
           xAxis: {
             splitLine: {
               lineStyle: {
@@ -145,7 +141,6 @@
             scale: true
           },
           series: [{
-            // name: '1990',
             data: [[1, 0, 1, '1'], [3, 1, 3, '3'], [3, 2, 3, '3'], [8, 3, 8, '8']],
             type: 'scatter',
             symbolSize: function (data) {
@@ -175,6 +170,65 @@
               }
             }
           }]
+        },
+        recordOption: {
+          title: {
+            text: '通话记录',
+            subtext: 'Default layout',
+            top: 'bottom',
+            left: 'right'
+          },
+          tooltip: {},
+          legend: [{
+            // selectedMode: 'single',
+            data: this.categories
+          }],
+          animationDuration: 1500,
+          animationEasingUpdate: 'quinticInOut',
+          series: [
+            {
+              name: 'Les Miserables',
+              type: 'graph',
+              layout: 'none',
+              data: [{
+                name: '第一个通话',
+                x: 10,
+                y: 10,
+                value: 10,
+                symbolSize: 30
+              }, {
+                name: '第二个通话',
+                x: 10,
+                y: 20,
+                value: 20,
+                symbolSize: 30
+                // itemStyle: {
+                //   normal: {
+                //     color: 'red'
+                //   }
+                // }
+              }],
+              links: [{
+                source: '第一个通话',
+                target: '第二个通话',
+                weight: 1
+              }],
+              categories: '1',
+              roam: true,
+              label: {
+                normal: {
+                  position: 'right',
+                  formatter: '{b}'
+                }
+              },
+              lineStyle: {
+                normal: {
+                  color: 'source',
+                  curveness: 0.3
+                }
+              }
+            }
+          ]
         },
         showSecondChart: false,
         voiceDataPath: null,
@@ -256,32 +310,7 @@
         currentProjectName: {
           name: null
         },
-        projectIndex: null,
-        chartData: [[1, 0, 1, '1'], [3, 1, 3, '3'], [3, 2, 3, '3'], [8, 3, 8, '8']],
-        graphData: {
-          nodes: [{
-            name: '1',
-            x: 10,
-            y: 10,
-            value: 10
-          }, {
-            name: '2',
-            x: 100,
-            y: 100,
-            value: 20,
-            symbolSize: 20,
-            itemStyle: {
-              normal: {
-                color: 'red'
-              }
-            }
-          }],
-          links: [{
-            source: '1',
-            target: '2'
-          }]
-        },
-        categories: ['1']
+        projectIndex: null
       }
     },
     methods: {
@@ -306,11 +335,17 @@
       },
       selectDistributor (index) {
         this.showFirstChart = false
+        this.showSecondChart = false
         this.showReportForm = true
       },
       backToReportFrom () {
         this.showFirstChart = false
+        this.showSecondChart = false
         this.showReportForm = true
+      },
+      backToFirstChart () {
+        this.showFirstChart = true
+        this.showSecondChart = false
       },
       exportReport () {
         this.$Message.success('导出成功')
@@ -318,14 +353,17 @@
       showReportFormDetail (index) {
         this.showReportForm = false
         this.showFirstChart = true
-        // this.$nextTick(function () {
-        //   this.drewFirstReport()
-        // })
+      },
+      checkRecordGroup (event, instance, echarts) {
+        console.log(arguments)
+        this.showSecondChart = true
+        this.showFirstChart = false
       },
       selectProject (name) {
         this.projectIndex = name
         this.showAllDistributors = true
         this.showFirstChart = false
+        this.showSecondChart = false
         this.showReportForm = false
         this.currentProjectName['name'] = this.allProjects[name].name
       },
@@ -353,141 +391,6 @@
             message: e
           })
         }
-      },
-      // newReportChart (id, option) {
-      //   const myChart = echarts.init(document.getElementById(id), 'macarons')
-      //   myChart.setOption(option)
-      // },
-      drewFirstReport () {
-        const myChart = echarts.init(document.getElementById('firstReportChart'), 'macarons')
-        myChart.setOption({
-          backgroundColor: new echarts.graphic.RadialGradient(0.3, 0.3, 0.8, [{
-            offset: 0,
-            color: '#f7f8fa'
-          }, {
-            offset: 1,
-            color: '#cdd0d5'
-          }]),
-          title: {
-            text: '相似通话集合'
-          },
-          // legend: {
-          //   right: 10,
-          //   data: ['1990']
-          // },
-          xAxis: {
-            splitLine: {
-              lineStyle: {
-                type: 'dashed'
-              }
-            }
-          },
-          yAxis: {
-            splitLine: {
-              lineStyle: {
-                type: 'dashed'
-              }
-            },
-            scale: true
-          },
-          series: [{
-            // name: '1990',
-            data: this.chartData[0],
-            type: 'scatter',
-            symbolSize: function (data) {
-              return data[2] * 10
-            },
-            label: {
-              emphasis: {
-                show: true,
-                formatter: function (param) {
-                  return param.data[3]
-                },
-                position: 'inside'
-              }
-            },
-            itemStyle: {
-              normal: {
-                shadowBlur: 10,
-                shadowColor: 'rgba(120, 36, 50, 0.5)',
-                shadowOffsetY: 5,
-                color: new echarts.graphic.RadialGradient(0.4, 0.3, 1, [{
-                  offset: 0,
-                  color: 'rgb(251, 118, 123)'
-                }, {
-                  offset: 1,
-                  color: 'rgb(204, 46, 72)'
-                }])
-              }
-            }
-          }]
-        })
-        myChart.on('click', function (params) {
-          setTimeout(function () {
-            console.log(params)
-            console.log('点击==================================》成功')
-            const myChart = echarts.getInstanceByDom(document.getElementById('firstReportChart'), 'macarons')
-            myChart.setOption({
-              title: {
-                text: '通话记录',
-                subtext: 'Default layout',
-                top: 'bottom',
-                left: 'right'
-              },
-              tooltip: {},
-              legend: [{
-                // selectedMode: 'single',
-                data: this.categories
-              }],
-              animationDuration: 1500,
-              animationEasingUpdate: 'quinticInOut',
-              series: [
-                {
-                  name: 'Les Miserables',
-                  type: 'graph',
-                  layout: 'none',
-                  data: [{
-                    name: '第一个通话',
-                    x: 10,
-                    y: 10,
-                    value: 10,
-                    symbolSize: 30
-                  }, {
-                    name: '第二个通话',
-                    x: 10,
-                    y: 20,
-                    value: 20,
-                    symbolSize: 30
-                    // itemStyle: {
-                    //   normal: {
-                    //     color: 'red'
-                    //   }
-                    // }
-                  }],
-                  links: [{
-                    source: '第一个通话',
-                    target: '第二个通话',
-                    weight: 1
-                  }],
-                  categories: '1',
-                  roam: true,
-                  label: {
-                    normal: {
-                      position: 'right',
-                      formatter: '{b}'
-                    }
-                  },
-                  lineStyle: {
-                    normal: {
-                      color: 'source',
-                      curveness: 0.3
-                    }
-                  }
-                }
-              ]
-            })
-          }, 1000)
-        })
       }
     },
     mounted () {
@@ -515,6 +418,10 @@
     float: right;
     margin-right: 20%;
     margin-bottom: 20px;
+  }
+  .back-button{
+    float: right;
+    margin-bottom: 5px;
   }
   .layout-breadcrumb{
     padding: 10px 15px 0;
