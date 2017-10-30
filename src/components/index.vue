@@ -4,109 +4,156 @@
         <span class="logo">客户满意度调查</span>
     </Menu>
     <div class="layout-content">
-        <Row>
-            <Col span="5">
-              <Menu class="menu" active-name="1-2" width="auto" height="900" :open-names="['1']" @on-select="selectProject">
-                <Submenu name="1">
-                  <template slot="title">
-                    <Icon type="folder"></Icon>
-                    项目列表
-                  </template>
-                  <div v-for="(project, index) of allProjects" :key="index">
-                  <MenuItem :name="index"> {{ project.name }} </MenuItem>
-                  </div>
-                </Submenu>
-              </Menu>
-            </Col>
-            <Col span="19">
-              <div class="layout-breadcrumb">
-                <Breadcrumb>
-                  <BreadcrumbItem>首页</BreadcrumbItem>
-                  <BreadcrumbItem> {{ currentProjectName.name }}</BreadcrumbItem>
-                </Breadcrumb>
-              </div>
-              <div class="layout-content-main">
-                <Card v-if="showAllDistributors" class="card">
-                  <template slot="title">
-                    <Icon type="ios-world-outline"></Icon>
-                    所有经销商
-                    <Button type="primary" class="check-button" size="small" @click="addDistributorConfirm">添加经销商</Button>
-                  </template>
-                    <a v-for="(distributor, index) of allDistributors" :key="index" class="a-distributor" @click="selectDistributor(index)"><Icon type="link"></Icon> {{ distributor.name }} </a>
-                </Card>
-                <Card v-if="showReportForm">
-                  <template slot="title">
-                    <Icon type="person-stalker"></Icon>
-                    经销商名字
-                    <Button type="primary" class="check-button" size="small" @click="voiceDataCheckConfirm">检查</Button>
-                  </template>
-                  <div class="data-check">得分：{{ '九十分' }}</div>
-                  <div class="data-check">累计检查通话数 {{ '5000' }}</div>
-                  <div class="data-check">累计疑似通话 {{ '20' }}</div>
-                  <h2 class="title">
-                    报表
-                  </h2>
-                  <Table :columns="reportFormColumn" :data="reportFormData" @on-row-click="showReportFormDetail"></Table>
-                </Card>
-                <Card v-if="showFirstChart">
-                  <template slot="title">
-                    <Icon type="person-stalker"></Icon>
-                    经销商名字
-                    <Button type="primary" class="check-button" size="small" @click="backToReportFrom">返回</Button>
-                    <Button type="primary" class="check-button" size="small" @click="exportReport">导出报表</Button>
-                  </template>
-                  <div class="data-check">得分：{{ '九十分' }}</div>
-                  <div class="data-check">累计检查通话数 {{ '5000' }}</div>
-                  <div class="data-check">累计疑似通话 {{ '20' }}</div>
-                  <h2 class="title">
-                    详情
-                  </h2>
-                    <div class="echarts">
-                    <IEcharts :option="reportOption" @click="checkRecordGroup"></IEcharts>
-                    </div>
-                </Card>
-                <Card v-if="showSecondChart">
-                  <template slot="title">
-                    <Icon type="person-stalker"></Icon>
-                    经销商名字
-                    <Button type="primary" class="check-button" size="small" @click="backToReportFrom">返回</Button>
-                  </template>
-                  <div class="data-check">得分：{{ '九十分' }}</div>
-                  <div class="data-check">累计检查通话数 {{ '5000' }}</div>
-                  <div class="data-check">累计疑似通话 {{ '20' }}</div>
-                  <h2 class="title">
-                    详情
-                    <Button type="primary" class="back-button" size="small" @click="backToFirstChart">返回</Button>
-                  </h2>
-                  <div class="echarts2">
-                    <IEcharts :option="recordOption" @click="checkRecord"></IEcharts>
-                  </div>
-                  <Card class="record-list">
-                    <span>相似度</span><br />
-                    <span v-for="(record, index) of recordOption.series[0].data" :key="index"> {{ record.name }}: {{ '百分比' }}<br /></span>
-                  </Card>
-                </Card>
-                <Modal
-                  v-model="addDistributorDialog"
-                  title="添加经销商"
-                  :loading="addDistributorLoading"
-                  @on-ok="addDistributor">
-                  <Input v-model="addDistributorName">
-                    <span slot="prepend">经销商名称</span>
-                  </Input>
-                </Modal>
-                <Modal
-                  v-model="voiceDataCheckDialog"
-                  title="检查"
-                  :loading="voiceDataCheckLoading"
-                  @on-ok="voiceDataCheck">
-                  <Input v-model="voiceDataPath">
-                    <span slot="prepend">语音路径</span>
-                  </Input>
-                </Modal>
-              </div>
-            </Col>
-        </Row>
+      <Col span="5">
+        <Button type="primary" class="add-button" size="small" @click="addProjectConfirm">添加项目</Button>
+        <Menu class="menu" width="auto" height="900" :open-names="['1']" @on-select="selectProject">
+          <Submenu name="1">
+            <template slot="title">
+              <Icon type="folder"></Icon>
+              项目列表
+            </template>
+            <div v-for="(project, index) of allProjects" :key="index">
+            <MenuItem :name="index"> {{ project.name }} </MenuItem>
+            </div>
+          </Submenu>
+        </Menu>
+      </Col>
+      <Col span="19">
+        <div class="layout-breadcrumb">
+          <Breadcrumb>
+            <BreadcrumbItem>首页</BreadcrumbItem>
+            <BreadcrumbItem a="/" @click="toShowAllDistributors"> {{ currentProjectName.name }}</BreadcrumbItem>
+            <BreadcrumbItem> {{ currentDistributorName.name }}</BreadcrumbItem>
+          </Breadcrumb>
+        </div>
+        <div class="layout-content-main">
+          <Card v-if="showAllDistributors" class="card">
+            <template slot="title">
+              <Icon type="ios-world-outline"></Icon>
+              经销商列表
+              <Button type="primary" class="check-button" size="small" @click="deleteProjectConfirm">删除项目</Button>
+              <Button type="primary" class="delete-button" size="small" @click="addDistributorConfirm">添加经销商</Button>
+            </template>
+              <a v-for="(distributor, index) of allDistributors" :key="index" class="a-distributor" @click="selectDistributor(index)"><Icon type="link"></Icon> {{ distributor.name }} </a>
+          </Card>
+          <Card v-if="showReportForm">
+            <template slot="title">
+              <Icon type="person-stalker"></Icon>
+              经销商： {{ currentDistributorName.name }}
+              <Button type="primary" class="check-button" size="small" @click="deleteDistrubutorConfirm">删除该经销商</Button>
+              <Button type="primary" class="delete-button" size="small" @click="voiceDataCheckConfirm">检查</Button>
+            </template>
+            <div class="data-check">得分：{{ score }}</div>
+            <div class="data-check">累计检查通话数 {{ '5000' }}</div>
+            <div class="data-check">累计疑似通话 {{ '20' }}</div>
+            <h2 class="title">
+              报表
+            </h2>
+            <Table :columns="reportFormColumn" :data="reportFormData" @on-row-dblclick="showReportFormDetail"></Table>
+          </Card>
+          <Card v-if="showFirstChart">
+            <template slot="title">
+              <Icon type="person-stalker"></Icon>
+              经销商名字
+              <Button type="primary" class="check-button" size="small" @click="backToReportFrom">返回</Button>
+              <Button type="primary" class="check-button" size="small" @click="exportReport">导出报表</Button>
+            </template>
+            <div class="data-check">得分：{{ score }}</div>
+            <div class="data-check">累计检查通话数 {{ '5000' }}</div>
+            <div class="data-check">累计疑似通话 {{ '20' }}</div>
+            <h2 class="title">
+              详情
+            </h2>
+            <div class="echarts">
+            <IEcharts :option="reportOption" @click="checkRecordGroup"></IEcharts>
+            </div>
+          </Card>
+          <Card v-if="showSecondChart">
+            <template slot="title">
+              <Icon type="person-stalker"></Icon>
+              经销商名字
+              <Button type="primary" class="check-button" size="small" @click="backToReportFrom">返回</Button>
+            </template>
+            <div class="data-check">得分：{{ score }}</div>
+            <div class="data-check">累计检查通话数 {{ '5000' }}</div>
+            <div class="data-check">累计疑似通话 {{ '20' }}</div>
+            <h2 class="title">
+              详情
+              <Button type="primary" class="back-button" size="small" @click="backToFirstChart">返回</Button>
+            </h2>
+            <Card class="record-list">
+              <span>相似度</span><br />
+              <span v-for="(record, index) of recordOption.series[0].data" :key="index"> {{ record.name }}: {{ '百分比' }}</span>
+            </Card>
+            <div class="echarts2">
+              <IEcharts :option="recordOption" @click="checkRecord"></IEcharts>
+            </div>
+          </Card>
+          <Modal
+            v-model="addDistributorDialog"
+            title="添加经销商"
+            :loading="addDistributorLoading"
+            @on-ok="addDistributor">
+            <Input v-model="addDistributorName">
+              <span slot="prepend">经销商名称</span>
+            </Input>
+          </Modal>
+          <Modal
+            v-model="addProjectDialog"
+            title="项目销商"
+            :loading="addDistributorLoading"
+            @on-ok="addProject">
+            <Input v-model="addProjectName">
+              <span slot="prepend">项目名称</span>
+            </Input>
+          </Modal>
+          <Modal
+            v-model="voiceDataCheckDialog"
+            title="检查"
+            :loading="voiceDataCheckLoading"
+            @on-ok="voiceDataCheck">
+            <Input class="imput-small" v-model="newReportName">
+              <span slot="prepend">报表名称</span>
+            </Input>
+            <Input class="imput-small" v-model="newVoiceDataPath">
+              <span slot="prepend">语音路径</span>
+            </Input>
+            <Select v-model="channel" class="select-small" placeholder="声道">
+              <Option v-for="item in channels" :value="item.value" :key="item.value">{{ item.label }}</Option>
+            </Select>
+            <Select v-model="samplerate" class="select-small" placeholder="采样率">
+              <Option v-for="item in samplerates" :value="item.value" :key="item.value">{{ item.label }}</Option>
+            </Select>
+            <Select v-model="channelType" class="select-small" placeholder="声道类型">
+              <Option v-for="item in channelTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
+            </Select>
+            <Select v-model="wavType" class="select-small" placeholder="语音格式">
+              <Option v-for="item in wavTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
+            </Select>
+          </Modal>
+          <Modal
+            v-model="deleteDistrubutorDialog"
+            title="删除"
+            :loading="voiceDataCheckLoading"
+            @on-ok="deleteDistrubutor">
+            是否删除该经销商？一经删除，即不可恢复。
+          </Modal>
+          <Modal
+            v-model="deleteProjectDialog"
+            title="删除"
+            :loading="voiceDataCheckLoading"
+            @on-ok="deleteProject">
+            是否删除该项目？一经删除，即不可恢复。
+          </Modal>
+          <Modal
+            v-model="deleteReportDialog"
+            title="删除"
+            :loading="voiceDataCheckLoading"
+            @on-ok="deleteReport">
+            是否删除该报表？一经删除，即不可恢复。
+          </Modal>
+        </div>
+      </Col>
     </div>
     <!-- <div class="layout-copy">
       2017 &copy; shayumaoliang
@@ -114,6 +161,7 @@
   </div>
 </template>
 <script>
+  const qs = require('qs')
   const echarts = require('echarts')
   export default {
     data () {
@@ -176,6 +224,13 @@
           }]
         },
         recordOption: {
+          backgroundColor: new echarts.graphic.RadialGradient(0.3, 0.3, 0.8, [{
+            offset: 0,
+            color: '#f7f8fa'
+          }, {
+            offset: 1,
+            color: '#cdd0d5'
+          }]),
           title: {
             text: null,
             subtext: null,
@@ -251,10 +306,64 @@
             }
           ]
         },
+        channel: null,
+        channels: [
+          {
+            value: 0,
+            label: '左声道'
+          },
+          {
+            value: 1,
+            label: '右声道'
+          }
+        ],
+        samplerate: null,
+        samplerates: [
+          {
+            value: 8000,
+            label: '8000'
+          },
+          {
+            value: 16000,
+            label: '16000'
+          }
+        ],
+        channelType: null,
+        channelTypes: [
+          {
+            value: 0,
+            label: 'dep'
+          },
+          {
+            value: 1,
+            label: 'mixed'
+          }
+        ],
+        wavType: null,
+        wavTypes: [
+          {
+            value: 0,
+            label: 'wav'
+          },
+          {
+            value: 1,
+            label: 'mp3'
+          },
+          {
+            value: 3,
+            label: 'pcm'
+          }
+        ],
+        score: 0,
+        showAllProject: true,
         showSecondChart: false,
-        voiceDataPath: null,
+        newVoiceDataPath: null,
+        newReportName: null,
         voiceDataCheckLoading: true,
         voiceDataCheckDialog: false,
+        deleteDistrubutorDialog: false,
+        deleteProjectDialog: false,
+        deleteReportDialog: false,
         addDistributorName: null,
         addDistributorLoading: true,
         addDistributorDialog: false,
@@ -262,6 +371,10 @@
         showReportForm: false,
         showFirstChart: false,
         reportFormColumn: [
+          {
+            title: '报告名称',
+            key: 'reportName'
+          },
           {
             title: '检查时间',
             key: 'checkedTime'
@@ -277,61 +390,51 @@
           {
             title: '疑似通话',
             key: 'similarCall'
+          },
+          {
+            title: '操作',
+            key: 'action',
+            fixed: 'right',
+            render: (h, params) => {
+              return h('div', [
+                h('Button', {
+                  props: {
+                    type: 'error',
+                    size: 'small'
+                  },
+                  on: {
+                    click: () => {
+                      this.deleteReportConfirm(params)
+                    }
+                  }
+                }, '删除')
+              ])
+            }
           }
         ],
         reportFormData: [
           {
-            checkedTime: '2017-10-26',
-            checkProgress: '100%',
-            checkNum: 213,
-            similarCall: 5
-          },
-          {
-            checkedTime: '2017-10-26',
-            checkProgress: '100%',
-            checkNum: 213,
-            similarCall: 5
-          },
-          {
+            reportName: '1号',
             checkedTime: '2017-10-26',
             checkProgress: '100%',
             checkNum: 213,
             similarCall: 5
           }
         ],
-        allDistributors: [
-          {
-            name: '河北经销商'
-          },
-          {
-            name: '河南经销商'
-          },
-          {
-            name: '河东经销商'
-          },
-          {
-            name: '河西经销商'
-          }
-        ],
-        allProjects: [
-          {
-            name: '春季检查'
-          },
-          {
-            name: '夏季检查'
-          },
-          {
-            name: '秋季检查'
-          },
-          {
-            name: '冬季检查'
-          }
-        ],
-        allProjectsName: [],
+        allDistributors: [],
+        allProjects: [],
         currentProjectName: {
+          id: null,
           name: null
         },
-        projectIndex: null
+        currentDistributorName: {
+          id: null,
+          name: null
+        },
+        projectIndex: null,
+        addProjectName: null,
+        addProjectDialog: false,
+        row: {}
       }
     },
     methods: {
@@ -339,25 +442,195 @@
         this.addDistributorName = null
         this.addDistributorDialog = true
       },
-      async addDistributor () {
-        await setTimeout(() => {
-          this.allDistributors.push({ name: this.addDistributorName })
-          this.addDistributorDialog = false
-          this.$Message.success('添加成功')
-        }, 2000)
+      addProjectConfirm () {
+        this.addProjectName = null
+        this.addProjectDialog = true
+      },
+      addDistributor () {
+        setTimeout(async() => {
+          try {
+            const res = await this.$http({
+              method: 'POST',
+              url: this.$apiUrl + '/' + this.currentProjectName.name + '/createdealer',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              data: qs.stringify({
+                dealer_name: this.addDistributorName
+              })
+            })
+            if (res.data.code === 0) {
+              this.getAllDistributors()
+              this.addDistributorDialog = false
+              this.$Message.success('添加成功')
+            } else {
+
+            }
+          } catch (e) {
+            console.log(e)
+          }
+        }, 1000)
+      },
+      addProject () {
+        setTimeout(async() => {
+          try {
+            const res = await this.$http({
+              method: 'POST',
+              url: this.$apiUrl + '/createproject',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              data: qs.stringify({
+                project_name: this.addProjectName
+              })
+            })
+            if (res.data.code === 0) {
+              this.getAllProjects()
+              this.addProjectDialog = false
+              this.$Message.success('添加成功')
+            } else {
+              this.$Message.error(res.data.msg)
+            }
+          } catch (e) {
+            this.$Message.error('网络错误')
+            this.addProjectDialog = false
+            console.log(e)
+          }
+        }, 1000)
       },
       voiceDataCheckConfirm () {
         this.voiceDataCheckDialog = true
       },
+      deleteDistrubutorConfirm () {
+        this.deleteDistrubutorDialog = true
+      },
+      deleteProjectConfirm () {
+        this.deleteProjectDialog = true
+      },
+      async getReport () {
+        try {
+          const res = await this.$http({
+            method: 'GET',
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/deletedealer?dealer_name=' + this.currentDistributorName.name
+          })
+          if (res.data.code === 0) {
+            // const reports = res.data.reports
+            // for
+          }
+        } catch (e) {
+          this.$Message.error('发生错误，请查看日志')
+          console.log(e)
+        }
+      },
       voiceDataCheck () {
-        setTimeout(() => {
-          this.voiceDataCheckDialog = false
-        }, 2000)
+        setTimeout(async() => {
+          try {
+            const res = await this.$http({
+              method: 'POST',
+              url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/createreport',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              data: qs.stringify({
+                report_name: this.newReportName,
+                wav_dir: this.newVoiceDataPath,
+                channel: this.channel,
+                samplerate: this.samplerate,
+                chan_type: this.channelType,
+                wav_type: this.wavType
+              })
+            })
+            if (res.data.code === 0) {
+              this.$Message.success('开始检查')
+              this.voiceDataCheckDialog = false
+            } else {
+              this.$Message.error(res.data.msg)
+              this.voiceDataCheckDialog = false
+            }
+          } catch (e) {
+            this.voiceDataCheckDialog = false
+            this.$Message.error('发生错误，请查看日志')
+            console.log(e)
+          }
+        }, 1000)
+      },
+      deleteDistrubutor () {
+        setTimeout(async() => {
+          try {
+            const res = await this.$http({
+              method: 'GET',
+              url: this.$apiUrl + '/' + this.currentProjectName.name + '/deletedealer?dealer_name=' + this.currentDistributorName.name
+            })
+            if (res.data.code === 0) {
+              this.$Message.success('成功删除')
+              this.deleteDistrubutorDialog = false
+              this.getAllDistributors()
+            } else {
+              this.$Message.error(res.data.msg)
+            }
+          } catch (e) {
+            this.$Message.error('发生错误，请查看日志')
+            this.deleteDistrubutorDialog = false
+            console.log(e)
+          }
+        }, 1000)
+      },
+      deleteReportConfirm (params) {
+        this.row = params.row
+        console.log(params)
+        return params
+      },
+      deleteProject () {
+        setTimeout(async() => {
+          try {
+            const res = await this.$http({
+              method: 'GET',
+              url: this.$apiUrl + '/deleteproject?project_name=' + this.currentProjectName.name
+            })
+            if (res.data.code === 0) {
+              this.deleteProjectDialog = false
+              this.$Message.success('成功删除')
+              this.getAllProjects()
+            } else {
+              this.deleteProjectDialog = false
+              this.$Message.error(res.data.msg)
+            }
+          } catch (e) {
+            this.deleteProjectDialog = false
+            this.$Message.error('发生错误，请查看日志')
+            console.log(e)
+          }
+        }, 1000)
+      },
+      async deleteReport () {
+        try {
+          const res = await this.$http({
+            method: 'GET',
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName + '/deletereport?report_name=' + this.row.reportName
+          })
+          if (res.data.code === 0) {
+            this.deleteReportDialog = false
+            this.$Message.success('成功删除')
+            this.getReport()
+          } else {
+            this.deleteReportDialog = false
+            this.$Message.error(res.data.msg)
+          }
+        } catch (e) {
+          this.deleteReportDialog = false
+          this.$Message.error(e)
+          console.log(e)
+        }
       },
       selectDistributor (index) {
         this.showFirstChart = false
         this.showSecondChart = false
         this.showReportForm = true
+        this.currentDistributorName['name'] = this.allDistributors[index].name
+        this.currentDistributorName['id'] = index
+        this.showAllDistributors = false
+      },
+      toShowAllDistributors () {
+        this.showAllDistributors = true
+        this.showFirstChart = false
+        this.showSecondChart = false
+        this.showReportForm = false
+        this.showAllProject = false
+        this.currentDistributorName = {}
       },
       backToReportFrom () {
         this.showFirstChart = false
@@ -383,14 +656,46 @@
       checkRecord (event, instance, echarts) {
         console.log(arguments)
       },
+      async getAllDistributors () {
+        try {
+          this.allDistributors = []
+          const res = await this.$http({
+            method: 'GET',
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/alldealers'
+          })
+          if (res.data.code === 0) {
+            const allDistributors = res.data.dealers
+            for (let i = 0; i < allDistributors.length; i++) {
+              const distributor = {}
+              distributor['name'] = allDistributors[i]
+              this.allDistributors.push(distributor)
+            }
+          } else {
+            this.$Message.error(res.data.msg)
+          }
+        } catch (e) {
+          console.log(e)
+        }
+      },
       selectProject (name) {
         this.projectIndex = name
         this.showAllDistributors = true
         this.showFirstChart = false
         this.showSecondChart = false
         this.showReportForm = false
+        this.showAllProject = false
         this.currentProjectName['name'] = this.allProjects[name].name
+        this.currentProjectName['id'] = name
+        this.currentDistributorName = {}
+        this.getAllDistributors()
       },
+      // openProject (name) {
+      //   this.showAllProject = true
+      //   this.showAllDistributors = false
+      //   this.showFirstChart = false
+      //   this.showSecondChart = false
+      //   this.showReportForm = false
+      // },
       async getAllProjects () {
         try {
           this.allProjects = []
@@ -402,23 +707,24 @@
             const allProjects = res.data.projects
             for (let i = 0; i < allProjects.length; i++) {
               const project = {}
-              project['id'] = allProjects[i].project_name
-              project['name'] = allProjects[i].id
-              // project['dealers'] = allProjects[i].dealers
+              project['id'] = allProjects[i].id
+              project['name'] = allProjects[i].project_name
+              project['dealers'] = allProjects[i].dealers
               this.allProjects.push(project)
             }
           }
         } catch (e) {
-          this.$message({
-            type: 'error',
-            showClose: true,
-            message: e
-          })
+          // this.$message({
+          //   type: 'error',
+          //   showClose: true,
+          //   message: e
+          // })
+          console.log(e)
         }
       }
     },
     mounted () {
-      // this.getAllProjects()
+      this.getAllProjects()
     }
   }
 </script>
@@ -442,6 +748,14 @@
     float: right;
     margin-right: 20%;
     margin-bottom: 20px;
+  }
+  .delete-button{
+    float: right;
+    margin-right: 2%;
+    margin-bottom: 20px;
+  }
+  .add-button {
+    margin-left: 5px;
   }
   .back-button{
     margin-right: 20%;
@@ -480,7 +794,7 @@
       height: inherit;
   }
   .layout-content{
-      height: 80%;
+      min-height: 100%;
       margin: 15px;
       /* overflow: hidden; */
       background: #fff;
@@ -488,6 +802,7 @@
   }
   .layout-content-main{
       padding: 10px;
+      min-height: 100%;
   }
   .layout-copy{
       height: 10%;
@@ -497,24 +812,21 @@
       margin-top: 5px;
   }
   .echarts {
-    width: 80%;
+    width: 60%;
     height: 400px;
     position: relative;
   }
   .echarts2 {
     position: relative;
-    float: left;
     width: 60%;
     height: 400px;
   }
   .record-list {
-    margin-left: 10px;
+    margin-left: 0;
     background-color: rgb(205, 208, 213);
-    float: right;
-    height: 400px;
+    width: 60.8%;
   }
   .a-distributor{
-    float: left;
     margin-left: 10px;
     margin-right: 10px;
     margin-bottom: 20px;
@@ -522,5 +834,13 @@
   .card{
     padding: 5px;
     padding-bottom: 10px;
+  }
+  .select-small {
+    width: 48.5%;
+    margin-top: 5px;
+  }
+  .imput-small {
+    width: 97.5%;
+    margin-top: 5px;
   }
 </style>
