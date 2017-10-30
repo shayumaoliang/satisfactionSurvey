@@ -78,9 +78,13 @@
                     详情
                     <Button type="primary" class="back-button" size="small" @click="backToFirstChart">返回</Button>
                   </h2>
-                  <div class="echarts">
+                  <div class="echarts2">
                     <IEcharts :option="recordOption" @click="checkRecord"></IEcharts>
                   </div>
+                  <Card class="record-list">
+                    <span>相似度</span><br />
+                    <span v-for="(record, index) of recordOption.series[0].data" :key="index"> {{ record.name }}: {{ '百分比' }}<br /></span>
+                  </Card>
                 </Card>
                 <Modal
                   v-model="addDistributorDialog"
@@ -104,9 +108,9 @@
             </Col>
         </Row>
     </div>
-    <div class="layout-copy">
+    <!-- <div class="layout-copy">
       2017 &copy; shayumaoliang
-    </div>
+    </div> -->
   </div>
 </template>
 <script>
@@ -173,11 +177,12 @@
         },
         recordOption: {
           title: {
-            text: '通话记录',
-            subtext: 'Default layout',
+            text: null,
+            subtext: null,
             top: 'bottom',
             left: 'right'
           },
+          coordinateSystem: null,
           tooltip: {},
           legend: [{
             // selectedMode: 'single',
@@ -185,39 +190,55 @@
           }],
           animationDuration: 1500,
           animationEasingUpdate: 'quinticInOut',
+          draggable: true,
           series: [
             {
-              name: 'Les Miserables',
+              name: null,
               type: 'graph',
-              layout: 'none',
-              data: [{
-                name: '第一个通话',
-                x: 10,
-                y: 10,
-                value: 10,
-                symbolSize: 30
-              }, {
-                name: '第二个通话',
-                x: 10,
-                y: 20,
-                value: 20,
-                symbolSize: 30
-                // itemStyle: {
-                //   normal: {
-                //     color: 'red'
-                //   }
-                // }
-              }],
-              links: [{
-                source: '第一个通话',
-                target: '第二个通话',
-                weight: 1
-              }],
-              categories: '1',
-              roam: true,
+              layout: 'force',
+              force: {
+                repulsion: [100, 500],
+                edgeLength: [0, 100]
+              },
+              data: [
+                {
+                  name: '第一个通话',
+                  symbolSize: 50
+                }, {
+                  name: '第二个通话',
+                  symbolSize: 50
+                }, {
+                  name: '第三个通话',
+                  symbolSize: 50
+                }, {
+                  name: '第四个通话',
+                  symbolSize: 50
+                }
+              ],
+              links: [
+                {
+                  source: '第一个通话',
+                  target: '第二个通话',
+                  value: 3
+                },
+                {
+                  source: '第一个通话',
+                  target: '第三个通话',
+                  value: 4
+                },
+                {
+                  source: '第一个通话',
+                  target: '第四个通话',
+                  value: 5
+                }
+              ],
+              // categories: '1',
+              roam: false,
+              draggable: true,
               label: {
                 normal: {
-                  position: 'right',
+                  show: true,
+                  position: 'inside',
                   formatter: '{b}'
                 }
               },
@@ -359,6 +380,9 @@
         this.showSecondChart = true
         this.showFirstChart = false
       },
+      checkRecord (event, instance, echarts) {
+        console.log(arguments)
+      },
       selectProject (name) {
         this.projectIndex = name
         this.showAllDistributors = true
@@ -474,6 +498,19 @@
   }
   .echarts {
     width: 80%;
+    height: 400px;
+    position: relative;
+  }
+  .echarts2 {
+    position: relative;
+    float: left;
+    width: 60%;
+    height: 400px;
+  }
+  .record-list {
+    margin-left: 10px;
+    background-color: rgb(205, 208, 213);
+    float: right;
     height: 400px;
   }
   .a-distributor{
