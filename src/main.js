@@ -9,14 +9,10 @@ import VueAxios from 'vue-axios'
 import axios from 'axios'
 import Iview from 'iview'
 import 'iview/dist/styles/iview.css'
-import ElementUI from 'element-ui'
-import ECharts from 'vue-echarts/components/ECharts.vue'
 
-Vue.component('chart', ECharts)
 Vue.use(VueAxios, axios)
 Vue.component(IEcharts.name, IEcharts)
 
-Vue.use(ElementUI)
 Vue.use(Iview)
 
 Vue.prototype.$apiUrl = process.env.NODE_ENV === 'development'

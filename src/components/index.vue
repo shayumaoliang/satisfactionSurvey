@@ -44,6 +44,9 @@
               <Button type="primary" class="delete-button" size="small" @click="voiceDataCheckConfirm">检查</Button>
             </template>
             <div class="data-check">得分：{{ totalResult.score }}</div>
+            <Circle :percent="totalResult.score">
+                <span style="font-size:24px">得分：{{ totalResult.score }}</span>
+            </Circle>
             <div class="data-check">累计检查通话数：{{ totalResult.allCheckedNum }}</div>
             <div class="data-check">累计疑似通话：{{ totalResult.allSimilarNum }}</div>
             <h2 class="title">
@@ -85,9 +88,10 @@
             <div class="echarts2">
               <IEcharts :option="recordOption" @click="selectRecord"></IEcharts>
             </div>
+            <br />
             <p>各通话与 {{ currentCall }} 的相似度:</p>
-            <div class="singleCall" v-for="(record, index) of recordOption.series[0].data" :key="index">
-              <span> {{ record.name }}: {{ '' }}</span>
+            <div class="singleCall" v-for="(record, index) of recordOption.series[0].links" :key="index">
+              <span> {{ record.target }}: <Progress style="width: 100px;" status="wrong" hide-info="true" :stroke-width="5" :percent="record.similarity.split('%')[0]"></Progress>{{ record.similarity }}</span>
             </div>
           </Card>
           <Modal
@@ -131,6 +135,12 @@
             <Select v-model="wavType" class="select-small" placeholder="语音格式">
               <Option v-for="item in wavTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
             </Select>
+            <RadioGroup v-model="checkMode" type="button">
+              <Radio disabled>选择模式</Radio>
+              <Radio label="0">宽松</Radio>
+              <Radio label="1">一般</Radio>
+              <Radio label="2">严格</Radio>
+            </RadioGroup>
           </Modal>
           <Modal
             v-model="deleteDistrubutorDialog"
@@ -156,9 +166,6 @@
         </div>
       </Col>
     </div>
-    <!-- <div class="layout-copy">
-      2017 &copy; shayumaoliang
-    </div> -->
   </div>
 </template>
 <script>
@@ -167,6 +174,7 @@
   export default {
     data () {
       return {
+        checkMode: '0',
         reportOption: {
           backgroundColor: 'rgb(229, 236, 225)',
           animationDuration: 1500,
@@ -473,7 +481,8 @@
                 channel: this.channel,
                 samplerate: this.samplerate,
                 chan_type: this.channelType,
-                wav_type: this.wavType
+                wav_type: this.wavType,
+                threshold: this.checkMode
               })
             })
             if (res.data.code === 0) {
@@ -586,8 +595,19 @@
         this.showFirstChart = true
         this.showSecondChart = false
       },
-      exportReport () {
-        this.$Message.success('导出成功')
+      async exportReport () {
+        try {
+          const res = await this.$http({
+            method: 'GET',
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.row.reportName + '/download'
+          })
+          if (res.data.code === 0) {
+            this.$Message.success('导出成功')
+          }
+        } catch (e) {
+          this.$Message.error('发生错误，请查看日志')
+          console.log(e)
+        }
       },
       async getAllSimilarCall () {
         try {
@@ -650,7 +670,7 @@
         try {
           const res = await this.$http({
             method: 'GET',
-            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.row.reportName + '/' + '/suspectinfo?cluster_id=' + id + '&suspect_name=' + name
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.row.reportName + '/suspectinfo?cluster_id=' + id + '&suspect_name=' + name
           })
           if (res.data.code === 0) {
             this.currentCall = name
@@ -679,11 +699,11 @@
               relation['symbolSize'] = 50
               link['source'] = name
               link['target'] = relationInfo[i].spkid
+              link['similarity'] = relationInfo[i].similarity.toFixed(2) + '%'
               link['value'] = Math.abs(relationInfo[i].length - 100)
               this.recordOption.series[0].data.push(relation)
               this.recordOption.series[0].links.push(link)
             }
-            console.log(this.recordOption.series[0].data, this.recordOption.series[0].links)
           } else {
             this.$Message.error(res.data.msg)
           }
@@ -699,7 +719,6 @@
       },
       selectRecord (event, instance, echarts) {
         this.getOneGroupRelation(arguments[0].data.recordId, arguments[0].data.name)
-        console.log(arguments)
       },
       async getAllDistributors () {
         try {
@@ -752,11 +771,6 @@
             }
           }
         } catch (e) {
-          // this.$message({
-          //   type: 'error',
-          //   showClose: true,
-          //   message: e
-          // })
           console.log(e)
         }
       }
@@ -875,6 +889,7 @@
   }
   .singleCall {
     margin-bottom: 5px;
+    margin-top: 5px;
     margin-left: 60px;
   }
 </style>
