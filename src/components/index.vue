@@ -43,50 +43,51 @@
               <Button type="primary" class="check-button" size="small" @click="deleteDistrubutorConfirm">删除该经销商</Button>
               <Button type="primary" class="delete-button" size="small" @click="voiceDataCheckConfirm">检查</Button>
             </template>
-            <div class="data-check">得分：{{ score }}</div>
-            <div class="data-check">累计检查通话数 {{ '5000' }}</div>
-            <div class="data-check">累计疑似通话 {{ '20' }}</div>
+            <div class="data-check">得分：{{ totalResult.score }}</div>
+            <div class="data-check">累计检查通话数：{{ totalResult.allCheckedNum }}</div>
+            <div class="data-check">累计疑似通话：{{ totalResult.allSimilarNum }}</div>
             <h2 class="title">
               报表
             </h2>
+            <span>*双击查看图表*</span>
             <Table :columns="reportFormColumn" :data="reportFormData" @on-row-dblclick="showReportFormDetail"></Table>
           </Card>
           <Card v-if="showFirstChart">
             <template slot="title">
               <Icon type="person-stalker"></Icon>
-              经销商名字
+              经销商： {{ currentDistributorName.name }}
               <Button type="primary" class="check-button" size="small" @click="backToReportFrom">返回</Button>
               <Button type="primary" class="check-button" size="small" @click="exportReport">导出报表</Button>
             </template>
-            <div class="data-check">得分：{{ score }}</div>
-            <div class="data-check">累计检查通话数 {{ '5000' }}</div>
-            <div class="data-check">累计疑似通话 {{ '20' }}</div>
+            <div class="data-check">当前得分：{{ currentResult.score }}</div>
+            <div class="data-check">当前检查通话数： {{ currentResult.allCheckedNum }}</div>
+            <div class="data-check">当前疑似通话数： {{ currentResult.allSimilarNum }}</div>
             <h2 class="title">
               详情
             </h2>
             <div class="echarts">
-            <IEcharts :option="reportOption" @click="checkRecordGroup"></IEcharts>
+            <IEcharts :option="reportOption" @click="selectRecordGroup"></IEcharts>
             </div>
           </Card>
           <Card v-if="showSecondChart">
             <template slot="title">
               <Icon type="person-stalker"></Icon>
-              经销商名字
+              经销商： {{ currentDistributorName.name }}
               <Button type="primary" class="check-button" size="small" @click="backToReportFrom">返回</Button>
             </template>
-            <div class="data-check">得分：{{ score }}</div>
-            <div class="data-check">累计检查通话数 {{ '5000' }}</div>
-            <div class="data-check">累计疑似通话 {{ '20' }}</div>
+            <div class="data-check">当前得分：{{ currentResult.score }}</div>
+            <div class="data-check">当前检查通话数： {{ currentResult.allCheckedNum }}</div>
+            <div class="data-check">当前疑似通话数： {{ currentResult.allSimilarNum }}</div>
             <h2 class="title">
               详情
               <Button type="primary" class="back-button" size="small" @click="backToFirstChart">返回</Button>
             </h2>
-            <Card class="record-list">
-              <span>相似度</span><br />
-              <span v-for="(record, index) of recordOption.series[0].data" :key="index"> {{ record.name }}: {{ '百分比' }}</span>
-            </Card>
             <div class="echarts2">
-              <IEcharts :option="recordOption" @click="checkRecord"></IEcharts>
+              <IEcharts :option="recordOption" @click="selectRecord"></IEcharts>
+            </div>
+            <p>各通话与 {{ currentCall }} 的相似度:</p>
+            <div class="singleCall" v-for="(record, index) of recordOption.series[0].data" :key="index">
+              <span> {{ record.name }}: {{ '' }}</span>
             </div>
           </Card>
           <Modal
@@ -162,139 +163,54 @@
 </template>
 <script>
   const qs = require('qs')
-  const echarts = require('echarts')
+  // const echarts = require('echarts')
   export default {
     data () {
       return {
         reportOption: {
-          backgroundColor: new echarts.graphic.RadialGradient(0.3, 0.3, 0.8, [{
-            offset: 0,
-            color: '#f7f8fa'
-          }, {
-            offset: 1,
-            color: '#cdd0d5'
-          }]),
-          title: {
-            text: '相似通话集合'
-          },
-          xAxis: {
-            splitLine: {
-              lineStyle: {
-                type: 'dashed'
-              }
-            }
-          },
-          yAxis: {
-            splitLine: {
-              lineStyle: {
-                type: 'dashed'
-              }
-            },
-            scale: true
-          },
+          backgroundColor: 'rgb(229, 236, 225)',
+          animationDuration: 1500,
+          draggable: false,
           series: [{
-            data: [[1, 0, 1, '1'], [3, 1, 3, '3'], [3, 2, 3, '3'], [8, 3, 8, '8']],
-            type: 'scatter',
-            symbolSize: function (data) {
-              return data[2] * 10
+            data: [],
+            type: 'graph',
+            layout: 'force',
+            force: {
+              repulsion: 100
             },
-            label: {
-              emphasis: {
-                show: true,
-                formatter: function (param) {
-                  return param.data[3]
-                },
-                position: 'inside'
-              }
-            },
+            roam: 'scale',
             itemStyle: {
               normal: {
                 shadowBlur: 10,
                 shadowColor: 'rgba(120, 36, 50, 0.5)',
                 shadowOffsetY: 5,
-                color: new echarts.graphic.RadialGradient(0.4, 0.3, 1, [{
-                  offset: 0,
-                  color: 'rgb(251, 118, 123)'
-                }, {
-                  offset: 1,
-                  color: 'rgb(204, 46, 72)'
-                }])
+                color: 'rgb(39, 99, 122)'
               }
             }
           }]
         },
         recordOption: {
-          backgroundColor: new echarts.graphic.RadialGradient(0.3, 0.3, 0.8, [{
-            offset: 0,
-            color: '#f7f8fa'
-          }, {
-            offset: 1,
-            color: '#cdd0d5'
-          }]),
-          title: {
-            text: null,
-            subtext: null,
-            top: 'bottom',
-            left: 'right'
-          },
-          coordinateSystem: null,
-          tooltip: {},
-          legend: [{
-            // selectedMode: 'single',
-            data: this.categories
-          }],
+          backgroundColor: 'rgb(229, 236, 225)',
           animationDuration: 1500,
           animationEasingUpdate: 'quinticInOut',
-          draggable: true,
+          draggable: false,
           series: [
             {
-              name: null,
               type: 'graph',
               layout: 'force',
               force: {
                 repulsion: [100, 500],
                 edgeLength: [0, 100]
               },
-              data: [
-                {
-                  name: '第一个通话',
-                  symbolSize: 50
-                }, {
-                  name: '第二个通话',
-                  symbolSize: 50
-                }, {
-                  name: '第三个通话',
-                  symbolSize: 50
-                }, {
-                  name: '第四个通话',
-                  symbolSize: 50
-                }
-              ],
-              links: [
-                {
-                  source: '第一个通话',
-                  target: '第二个通话',
-                  value: 3
-                },
-                {
-                  source: '第一个通话',
-                  target: '第三个通话',
-                  value: 4
-                },
-                {
-                  source: '第一个通话',
-                  target: '第四个通话',
-                  value: 5
-                }
-              ],
-              // categories: '1',
-              roam: false,
-              draggable: true,
-              label: {
+              data: [],
+              links: [],
+              roam: 'scale',
+              itemStyle: {
                 normal: {
-                  show: true,
-                  position: 'inside',
-                  formatter: '{b}'
+                  shadowBlur: 10,
+                  shadowColor: 'rgba(120, 36, 50, 0.5)',
+                  shadowOffsetY: 5,
+                  color: 'rgb(39, 99, 122)'
                 }
               },
               lineStyle: {
@@ -412,15 +328,7 @@
             }
           }
         ],
-        reportFormData: [
-          {
-            reportName: '1号',
-            checkedTime: '2017-10-26',
-            checkProgress: '100%',
-            checkNum: 213,
-            similarCall: 5
-          }
-        ],
+        reportFormData: [],
         allDistributors: [],
         allProjects: [],
         currentProjectName: {
@@ -434,7 +342,10 @@
         projectIndex: null,
         addProjectName: null,
         addProjectDialog: false,
-        row: {}
+        row: {},
+        totalResult: {},
+        currentResult: {},
+        currentCall: null
       }
     },
     methods: {
@@ -503,15 +414,46 @@
       deleteProjectConfirm () {
         this.deleteProjectDialog = true
       },
-      async getReport () {
+      async getCheckedTotalResult () {
         try {
           const res = await this.$http({
             method: 'GET',
-            url: this.$apiUrl + '/' + this.currentProjectName.name + '/deletedealer?dealer_name=' + this.currentDistributorName.name
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/resultinfo'
           })
           if (res.data.code === 0) {
-            // const reports = res.data.reports
-            // for
+            const totalResult = {}
+            totalResult['score'] = res.data.score
+            totalResult['allSimilarNum'] = res.data.suspectstotal
+            totalResult['allCheckedNum'] = res.data.wavtotal
+            this.totalResult = totalResult
+          } else {
+            this.$Message.success(res.data.msg)
+          }
+        } catch (e) {
+          this.$Message.error('发生错误，请查看日志')
+          console.log(e)
+        }
+      },
+      async getReport () {
+        try {
+          this.reportFormData = []
+          const res = await this.$http({
+            method: 'GET',
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/allreports'
+          })
+          if (res.data.code === 0) {
+            const reports = res.data.reports
+            for (let i = 0; i < reports.length; i++) {
+              const report = {}
+              report['reportName'] = reports[i].report_name
+              report['checkedTime'] = reports[i].report_time
+              report['checkProgress'] = reports[i].state
+              report['checkNum'] = reports[i].check_num
+              report['similarCall'] = reports[i].suspects
+              this.reportFormData.push(report)
+            }
+          } else {
+            this.$Message.error(res.data.msg)
           }
         } catch (e) {
           this.$Message.error('发生错误，请查看日志')
@@ -537,6 +479,7 @@
             if (res.data.code === 0) {
               this.$Message.success('开始检查')
               this.voiceDataCheckDialog = false
+              this.getReport()
             } else {
               this.$Message.error(res.data.msg)
               this.voiceDataCheckDialog = false
@@ -571,8 +514,7 @@
       },
       deleteReportConfirm (params) {
         this.row = params.row
-        console.log(params)
-        return params
+        this.deleteReportDialog = true
       },
       deleteProject () {
         setTimeout(async() => {
@@ -600,7 +542,7 @@
         try {
           const res = await this.$http({
             method: 'GET',
-            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName + '/deletereport?report_name=' + this.row.reportName
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/deletereport?report_name=' + this.row.reportName
           })
           if (res.data.code === 0) {
             this.deleteReportDialog = false
@@ -623,6 +565,8 @@
         this.currentDistributorName['name'] = this.allDistributors[index].name
         this.currentDistributorName['id'] = index
         this.showAllDistributors = false
+        this.getCheckedTotalResult()
+        this.getReport()
       },
       toShowAllDistributors () {
         this.showAllDistributors = true
@@ -637,23 +581,124 @@
         this.showSecondChart = false
         this.showReportForm = true
       },
-      backToFirstChart () {
+      async backToFirstChart () {
+        await this.getAllSimilarCall()
         this.showFirstChart = true
         this.showSecondChart = false
       },
       exportReport () {
         this.$Message.success('导出成功')
       },
-      showReportFormDetail (index) {
-        this.showReportForm = false
-        this.showFirstChart = true
+      async getAllSimilarCall () {
+        try {
+          this.reportOption.series[0].data = []
+          const res = await this.$http({
+            method: 'GET',
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.row.reportName + '/allsuspectset'
+          })
+          if (res.data.code === 0) {
+            const allSimilarCall = res.data.suspectSets
+            for (let i = 0; i < allSimilarCall.length; i++) {
+              const similarCallGroup = {}
+              similarCallGroup['name'] = '通话数：' + allSimilarCall[i].suspect_num
+              similarCallGroup['value'] = allSimilarCall[i].suspect_num
+              similarCallGroup['id'] = allSimilarCall[i].cluster_id
+              similarCallGroup['symbolSize'] = allSimilarCall[i].suspect_num * 8
+              similarCallGroup['similarCallGroup'] = allSimilarCall[i].suspects
+              this.reportOption.series[0].data.push(similarCallGroup)
+            }
+          } else {
+            this.$Message.error(res.data.msg)
+          }
+        } catch (e) {
+          this.$Message.error('发生错误，请查看日志')
+          console.log(e)
+        }
       },
-      checkRecordGroup (event, instance, echarts) {
-        console.log(arguments)
+      async getCurrentResult () {
+        try {
+          const res = await this.$http({
+            method: 'GET',
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.row.reportName + '/resultinfo'
+          })
+          if (res.data.code === 0) {
+            const currentResult = {}
+            currentResult['score'] = res.data.score
+            currentResult['allSimilarNum'] = res.data.suspectstotal
+            currentResult['allCheckedNum'] = res.data.wavtotal
+            this.currentResult = currentResult
+          } else {
+            this.$Message(res.data.msg)
+          }
+        } catch (e) {
+          this.$Message.error('发生错误，请查看日志')
+          console.log(e)
+        }
+      },
+      async showReportFormDetail (index) {
+        if (index.checkProgress === '完成') {
+          this.row = index
+          await this.getAllSimilarCall()
+          await this.getCurrentResult()
+          this.showReportForm = false
+          this.showFirstChart = true
+        } else {
+          this.$Message.warning('语音检查未完成，无法查看结果')
+        }
+      },
+      async getOneGroupRelation (id, name) {
+        try {
+          const res = await this.$http({
+            method: 'GET',
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.row.reportName + '/' + '/suspectinfo?cluster_id=' + id + '&suspect_name=' + name
+          })
+          if (res.data.code === 0) {
+            this.currentCall = name
+            const relationInfo = res.data.suspectInfo.result
+            this.recordOption.series[0].data = [
+              {
+                recordId: id,
+                name: name,
+                symbolSize: 50,
+                itemStyle: {
+                  normal: {
+                    shadowBlur: 10,
+                    shadowColor: 'rgba(120, 36, 50, 0.5)',
+                    shadowOffsetY: 5,
+                    color: 'rgb(30, 36, 62)'
+                  }
+                }
+              }
+            ]
+            this.recordOption.series[0].links = []
+            for (let i = 0; i < relationInfo.length; i++) {
+              const relation = {}
+              const link = {}
+              relation['recordId'] = id
+              relation['name'] = relationInfo[i].spkid
+              relation['symbolSize'] = 50
+              link['source'] = name
+              link['target'] = relationInfo[i].spkid
+              link['value'] = Math.abs(relationInfo[i].length - 100)
+              this.recordOption.series[0].data.push(relation)
+              this.recordOption.series[0].links.push(link)
+            }
+            console.log(this.recordOption.series[0].data, this.recordOption.series[0].links)
+          } else {
+            this.$Message.error(res.data.msg)
+          }
+        } catch (e) {
+          this.$Message.error('发生错误，请查看日志')
+          console.log(e)
+        }
+      },
+      async selectRecordGroup (event, instance, echarts) {
+        await this.getOneGroupRelation(arguments[0].data.id, arguments[0].data.similarCallGroup[0])
         this.showSecondChart = true
         this.showFirstChart = false
       },
-      checkRecord (event, instance, echarts) {
+      selectRecord (event, instance, echarts) {
+        this.getOneGroupRelation(arguments[0].data.recordId, arguments[0].data.name)
         console.log(arguments)
       },
       async getAllDistributors () {
@@ -689,13 +734,6 @@
         this.currentDistributorName = {}
         this.getAllDistributors()
       },
-      // openProject (name) {
-      //   this.showAllProject = true
-      //   this.showAllDistributors = false
-      //   this.showFirstChart = false
-      //   this.showSecondChart = false
-      //   this.showReportForm = false
-      // },
       async getAllProjects () {
         try {
           this.allProjects = []
@@ -730,8 +768,8 @@
 </script>
 <style scoped>
   .layout{
-      border: 1px solid #d7dde4;
-      background: #f5f7f9;
+      /* border: 1px solid #d7dde4; */
+      /* background: #f5f7f9; */
       box-sizing: border-box;
       min-height: 100%;
   }
@@ -775,16 +813,6 @@
     min-height: 100%;
     border: 10px
   }
-  .layout-logo{
-      width: 100px;
-      height: 30px;
-      background: #d7dde4;
-      border-radius: 3px;
-      float: left;
-      position: relative;
-      top: 15px;
-      left: 20px;
-  }
   .nuv-menu{
     height: 10%;
   }
@@ -812,14 +840,16 @@
       margin-top: 5px;
   }
   .echarts {
-    width: 60%;
+    width: 80%;
     height: 400px;
     position: relative;
+    margin-top: 5px;
   }
   .echarts2 {
     position: relative;
-    width: 60%;
+    width: 80%;
     height: 400px;
+    margin-top: 5px;
   }
   .record-list {
     margin-left: 0;
@@ -842,5 +872,9 @@
   .imput-small {
     width: 97.5%;
     margin-top: 5px;
+  }
+  .singleCall {
+    margin-bottom: 5px;
+    margin-left: 60px;
   }
 </style>
