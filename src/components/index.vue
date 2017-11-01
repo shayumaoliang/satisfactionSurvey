@@ -22,8 +22,9 @@
         <div class="layout-breadcrumb">
           <Breadcrumb>
             <BreadcrumbItem>首页</BreadcrumbItem>
-            <BreadcrumbItem a="/" @click="toShowAllDistributors"> {{ currentProjectName.name }}</BreadcrumbItem>
-            <BreadcrumbItem> {{ currentDistributorName.name }}</BreadcrumbItem>
+            <BreadcrumbItem a="/" @click="toShowAllDistributors" v-show="currentProjectName.name"> {{ currentProjectName.name }}</BreadcrumbItem>
+            <BreadcrumbItem v-show="currentDistributorName.name"> {{ currentDistributorName.name }}</BreadcrumbItem>
+            <BreadcrumbItem v-show="currentReportName.name"> {{ currentReportName.name }}</BreadcrumbItem>
           </Breadcrumb>
         </div>
         <div class="layout-content-main">
@@ -40,7 +41,8 @@
             <template slot="title">
               <Icon type="person-stalker"></Icon>
               经销商： {{ currentDistributorName.name }}
-              <Button type="primary" class="check-button" size="small" @click="deleteDistrubutorConfirm">删除该经销商</Button>
+              <Button type="error" class="check-button" size="small" @click="deleteDistrubutorConfirm">删除该经销商</Button>
+              <Button type="primary" class="delete-button" size="small" @click="backToDistrubutorList">返回经销商列表</Button>
               <Button type="primary" class="delete-button" size="small" @click="voiceDataCheckConfirm">检查</Button>
             </template>
             <div class="data-check">得分：{{ totalResult.score }}</div>
@@ -60,7 +62,8 @@
               <Icon type="person-stalker"></Icon>
               经销商： {{ currentDistributorName.name }}
               <Button type="primary" class="check-button" size="small" @click="backToReportFrom">返回</Button>
-              <Button type="primary" class="check-button" size="small" @click="exportReport">导出报表</Button>
+              <!-- <Button type="primary" class="check-button" size="small" :herf="download">导出报表</Button> -->
+              <a type="primary" class="check-button" size="small" :href="download">导出报表</a>
             </template>
             <div class="data-check">当前得分：{{ currentResult.score }}</div>
             <div class="data-check">当前检查通话数： {{ currentResult.allCheckedNum }}</div>
@@ -76,14 +79,14 @@
             <template slot="title">
               <Icon type="person-stalker"></Icon>
               经销商： {{ currentDistributorName.name }}
-              <Button type="primary" class="check-button" size="small" @click="backToReportFrom">返回</Button>
+              <Button type="primary" class="check-button" size="small" @click="backToFirstChart">返回</Button>
             </template>
             <div class="data-check">当前得分：{{ currentResult.score }}</div>
             <div class="data-check">当前检查通话数： {{ currentResult.allCheckedNum }}</div>
             <div class="data-check">当前疑似通话数： {{ currentResult.allSimilarNum }}</div>
             <h2 class="title">
               详情
-              <Button type="primary" class="back-button" size="small" @click="backToFirstChart">返回</Button>
+              <!-- <Button type="primary" class="back-button" size="small" @click="backToFirstChart">返回</Button> -->
             </h2>
             <div class="echarts2">
               <IEcharts :option="recordOption" @click="selectRecord"></IEcharts>
@@ -91,7 +94,7 @@
             <br />
             <p>各通话与 {{ currentCall }} 的相似度:</p>
             <div class="singleCall" v-for="(record, index) of recordOption.series[0].links" :key="index">
-              <span> {{ record.target }}: <Progress style="width: 100px;" status="wrong" hide-info="true" :stroke-width="5" :percent="record.similarity.split('%')[0]"></Progress>{{ record.similarity }}</span>
+              <span> {{ record.target }}: <Progress style="width: 100px;" :status="record.status" hide-info="true" :stroke-width="5" :percent="record.similarity.split('%')[0]"></Progress>{{ record.similarity }}</span>
             </div>
           </Card>
           <Modal
@@ -347,13 +350,18 @@
           id: null,
           name: null
         },
+        currentReportName: {
+          id: null,
+          name: null
+        },
         projectIndex: null,
         addProjectName: null,
         addProjectDialog: false,
         row: {},
         totalResult: {},
         currentResult: {},
-        currentCall: null
+        currentCall: null,
+        download: null
       }
     },
     methods: {
@@ -511,6 +519,9 @@
               this.$Message.success('成功删除')
               this.deleteDistrubutorDialog = false
               this.getAllDistributors()
+              this.showReportForm = false
+              this.showAllDistributors = true
+              this.currentDistributorName.name = null
             } else {
               this.$Message.error(res.data.msg)
             }
@@ -536,6 +547,8 @@
               this.deleteProjectDialog = false
               this.$Message.success('成功删除')
               this.getAllProjects()
+              this.showAllDistributors = false
+              this.currentProjectName.name = null
             } else {
               this.deleteProjectDialog = false
               this.$Message.error(res.data.msg)
@@ -589,6 +602,12 @@
         this.showFirstChart = false
         this.showSecondChart = false
         this.showReportForm = true
+        this.currentReportName.name = null
+      },
+      backToDistrubutorList () {
+        this.showReportForm = false
+        this.showAllDistributors = true
+        this.currentDistributorName.name = null
       },
       async backToFirstChart () {
         await this.getAllSimilarCall()
@@ -658,10 +677,12 @@
       async showReportFormDetail (index) {
         if (index.checkProgress === '完成') {
           this.row = index
+          this.currentReportName.name = index.reportName
           await this.getAllSimilarCall()
           await this.getCurrentResult()
           this.showReportForm = false
           this.showFirstChart = true
+          this.download = this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.row.reportName + '/download'
         } else {
           this.$Message.warning('语音检查未完成，无法查看结果')
         }
@@ -700,6 +721,17 @@
               link['source'] = name
               link['target'] = relationInfo[i].spkid
               link['similarity'] = relationInfo[i].similarity.toFixed(2) + '%'
+              if (relationInfo[i].similarity < 50) {
+                link['status'] = 'success'
+              } else {
+                if (relationInfo[i].similarity < 80) {
+                  link['status'] = 'normal'
+                } else {
+                  if (relationInfo[i].similarity < 100) {
+                    link['status'] = 'wrong'
+                  }
+                }
+              }
               link['value'] = Math.abs(relationInfo[i].length - 100)
               this.recordOption.series[0].data.push(relation)
               this.recordOption.series[0].links.push(link)
