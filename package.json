@@ -19,8 +19,6 @@
   "dependencies": {
     "axios": "0.16.2",
     "babel-polyfill": "^6.26.0",
-    "echarts": "^3.7.2",
-    "vue-echarts": "^2.4.1",
     "element-ui": "^2.0.0-beta.1",
     "iview": "2.5.1",
     "js-cookie": "2.1.4",
@@ -29,8 +27,7 @@
     "vue": "2.5.2",
     "vue-axios": "^2.0.2",
     "vue-echarts-v3": "^1.0.5",
-    "vue-router": "2.7.0",
-    "vuex": "2.3.1"
+    "vue-router": "2.7.0"
   },
   "devDependencies": {
     "portfinder": "1.0.13",

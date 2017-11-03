@@ -7,7 +7,10 @@ import VueAxios from 'vue-axios'
 import axios from 'axios'
 import Iview from 'iview'
 import 'iview/dist/styles/iview.css'
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
 
+Vue.use(ElementUI)
 Vue.use(VueAxios, axios)
 Vue.component(IEcharts.name, IEcharts)
 
