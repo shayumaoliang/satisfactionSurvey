@@ -127,7 +127,7 @@
               :loading="addDistributorLoading"
               @on-ok="voiceDataCheck">
               <div class="imput-small">
-                <Input v-model="newReportName">
+                <Input :disabled="inputDisabled" v-model="newReportName">
                   <span slot="prepend">报表名称</span>
                 </Input>
               </div>
@@ -345,6 +345,7 @@
           }
         ],
         score: 0,
+        inputDisabled: false,
         showAllProject: true,
         showSecondChart: false,
         newVoiceDataPath: null,
@@ -450,11 +451,14 @@
       uploadChange (value) {
         if (value === '1') {
           if (this.newReportName) {
+            this.inputDisabled = true
             this.uploadURL = this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.newReportName + '/upload'
           } else {
             this.voiceDataStatus = '0'
             this.$Message.warning('请先填写报表名称')
           }
+        } else {
+          this.inputDisabled = false
         }
       },
       uploading (file, event, fileList) {
@@ -531,6 +535,10 @@
       voiceDataCheckConfirm () {
         this.voiceDataCheckDialog = true
         this.fileName = null
+        this.channel = null
+        this.channelType = null
+        this.wavType = null
+        this.samplerate = null
         this.voiceDataStatus = '0'
         this.uploadPercent = null
         this.newReportName = null
@@ -593,27 +601,27 @@
       voiceDataCheck () {
         setTimeout(async() => {
           try {
-            if (!this.newReportName) {
+            if (this.newReportName === null) {
               this.$Message.error('请填写报表名称')
               this.addDistributorLoading = false
             } else {
-              if (!this.channel) {
+              if (this.channel === null) {
                 this.$Message.error('请选择声道')
                 this.addDistributorLoading = false
               } else {
-                if (!this.channelType) {
+                if (this.channelType === null) {
                   this.$Message.error('请选择声道类型')
                   this.addDistributorLoading = false
                 } else {
-                  if (!this.newVoiceDataPath) {
+                  if (this.newVoiceDataPath === null) {
                     this.$Message.error('请填写音频文件地址')
                     this.addDistributorLoading = false
                   } else {
-                    if (!this.wavType) {
+                    if (this.wavType === null) {
                       this.$Message.error('请选择语音格式')
                       this.addDistributorLoading = false
                     } else {
-                      if (!this.samplerate) {
+                      if (this.samplerate === null) {
                         this.$Message.error('请选择采样率')
                         this.addDistributorLoading = false
                       } else {
