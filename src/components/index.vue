@@ -95,7 +95,7 @@
             <br />
             <p>各通话与 {{ currentCall }} 的相似度:</p>
             <div class="singleCall" v-for="(record, index) of recordOption.series[0].links" :key="index">
-              <span> {{ record.target }}: <Progress style="width: 100px;" :status="record.status" hide-info="true" :stroke-width="5" :percent="Number(record.similarity.split('%')[0])"></Progress>{{ record.similarity }}</span>
+              <span> {{ record.target }}: <Progress style="width: 100px;" :status="record.status" :hide-info="true" :stroke-width="5" :percent="Number(record.similarity.split('%')[0])"></Progress>{{ record.similarity }}</span>
             </div>
           </Card>
           <Modal
