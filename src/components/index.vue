@@ -43,13 +43,9 @@
               经销商： {{ currentDistributorName.name }}
               <Button type="error" class="check-button" size="small" @click="deleteDistrubutorConfirm">删除该经销商</Button>
               <Button type="primary" class="delete-button" size="small" @click="backToDistrubutorList">返回经销商列表</Button>
-              <Button type="primary" class="delete-button" size="small" @click="voiceDataCheckConfirm">检查</Button>
-              <!-- <Button type="primary" class="delete-button" size="small" @click="uploadConfirm">上传音频</Button> -->
+              <Button type="primary" class="delete-button" size="small" @click="voiceDataCheckConfirm('newReport')">检查</Button>
             </template>
             <div class="data-check">得分：{{ totalResult.score }}</div>
-            <!-- <Circle :percent="totalResult.score">
-                <span style="font-size:24px">得分：{{ totalResult.score }}</span>
-            </Circle> -->
             <div class="data-check">累计检查通话数：{{ totalResult.allCheckedNum }}</div>
             <div class="data-check">累计疑似通话：{{ totalResult.allSimilarNum }}</div>
             <h2 class="title">
@@ -63,7 +59,6 @@
               <Icon type="person-stalker"></Icon>
               经销商： {{ currentDistributorName.name }}
               <Button type="primary" class="check-button" size="small" @click="backToReportFrom">返回</Button>
-              <!-- <Button type="primary" class="check-button" size="small" :herf="download">导出报表</Button> -->
               <a type="primary" class="check-button" size="small" :href="download">导出报表</a>
             </template>
             <div class="data-check">当前得分：{{ currentResult.score }}</div>
@@ -87,7 +82,6 @@
             <div class="data-check">当前疑似通话数： {{ currentResult.allSimilarNum }}</div>
             <h2 class="title">
               详情
-              <!-- <Button type="primary" class="back-button" size="small" @click="backToFirstChart">返回</Button> -->
             </h2>
             <div class="echarts2">
               <IEcharts :option="recordOption" @click="selectRecord"></IEcharts>
@@ -153,31 +147,41 @@
                     {{ fileName }}<Progress v-if="uploadPercent" :percent="uploadPercent" :stroke-width="5"></Progress>
                   </Upload>
                 </FormItem>
-                <FormItem class="select-small" label="选择声道" prop="channel">
-                  <Select v-model="newReport.channel" placeholder="声道">
-                    <Option value="0">左声道</Option>
-                    <Option value="1">右声道</Option>
-                  </Select>
-                </FormItem>
-                <FormItem class="select-small" label="选择采样率" prop="samplerate">
-                  <Select v-model="newReport.samplerate" placeholder="采样率">
-                    <Option value="8000">8000</Option>
-                    <Option value="16000">16000</Option>
-                  </Select>
-                </FormItem>
-                <FormItem class="select-small" label="选择声道类型" prop="channelType">
-                  <Select v-model="newReport.channelType" placeholder="声道类型">
-                    <Option value="0">dep</Option>
-                    <Option value="1">mixed</Option>
-                  </Select>
-                </FormItem>
-                <FormItem class="select-small" label="选择音频格式" prop="wavType">
-                  <Select v-model="newReport.wavType" placeholder="语音格式">
-                    <Option value="0">wav</Option>
-                    <Option value="1">mp3</Option>
-                    <Option value="2">pcm</Option>
-                  </Select>
-                </FormItem>
+                <Row>
+                  <Col span="11">
+                    <FormItem class="select-small" label="选择声道" prop="channel">
+                      <Select v-model="newReport.channel" placeholder="声道">
+                        <Option value="0">左声道</Option>
+                        <Option value="1">右声道</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col span="11">
+                    <FormItem class="select-small" label="选择声道类型" prop="channelType">
+                      <Select v-model="newReport.channelType" placeholder="声道类型">
+                        <Option value="0">dep</Option>
+                        <Option value="1">mixed</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col span="11">
+                    <FormItem class="select-small" label="选择采样率" prop="samplerate">
+                      <Select v-model="newReport.samplerate" placeholder="采样率">
+                        <Option value="8000">8000</Option>
+                        <Option value="16000">16000</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col span="11">
+                    <FormItem class="select-small" label="选择音频格式" prop="wavType">
+                      <Select v-model="newReport.wavType" placeholder="语音格式">
+                        <Option value="0">wav</Option>
+                        <Option value="1">mp3</Option>
+                        <Option value="2">pcm</Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                </Row>
                 <FormItem label="选择模式" prop="checkMode">
                   <RadioGroup v-model="newReport.checkMode" type="button">
                     <Radio label="0">宽松</Radio>
@@ -415,9 +419,9 @@
       },
       uploadChange (value) {
         if (value === '1') {
-          const reportName = this.newReport.newReportName.replace(/^\s+|\s+$/g, '')
-          if (reportName) {
+          if (this.newReport.newReportName) {
             this.inputDisabled = true
+            const reportName = this.newReport.newReportName.replace(/^\s+|\s+$/g, '')
             this.uploadURL = this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + reportName + '/upload'
           } else {
             this.newReport.voiceDataStatus = '0'
@@ -499,10 +503,8 @@
         }, 1000)
       },
       voiceDataCheckConfirm (name) {
+        this.$refs[name].resetFields()
         this.voiceDataCheckDialog = true
-      },
-      uploadConfirm () {
-        this.uploadDialog = true
       },
       deleteDistrubutorConfirm () {
         this.deleteDistrubutorDialog = true
@@ -1014,18 +1016,17 @@
     padding-bottom: 10px;
   }
   .select-small {
-    width: 80%;
+    width: 100%;
     margin-top: 1px;
   }
   .imput-path {
-    width: 80%;
-    margin-top: 5px;
+    width: 91.5%;
+    margin-top: 2px;
   }
   .imput-small {
-    width: 80%;
-    margin-top: 5px;
+    width: 91.5%;
+    margin-top: 2px;
     /* float: left; */
-    margin-top: 5px;
     /* display: inline; */
   }
   .singleCall {
