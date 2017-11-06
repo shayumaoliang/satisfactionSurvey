@@ -56,7 +56,7 @@
               报表
             </h2>
             <span>*双击查看图表*</span>
-            <Table :columns="reportFormColumn" :data="reportFormData" @on-row-dblclick="showReportFormDetail"></Table>
+            <Table height="450" :columns="reportFormColumn" :data="reportFormData" @on-row-dblclick="showReportFormDetail"></Table>
           </Card>
           <Card v-if="showFirstChart">
             <template slot="title">
