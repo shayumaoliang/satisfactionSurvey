@@ -43,7 +43,7 @@
               经销商： {{ currentDistributorName.name }}
               <Button type="error" class="check-button" size="small" @click="deleteDistrubutorConfirm">删除该经销商</Button>
               <Button type="primary" class="delete-button" size="small" @click="backToDistrubutorList">返回经销商列表</Button>
-              <Button type="primary" class="delete-button" size="small" @click="voiceDataCheckConfirm('newReport')">检查</Button>
+              <Button type="primary" class="delete-button" size="small" @click="voiceDataCheckConfirm">检查</Button>
               <!-- <Button type="primary" class="delete-button" size="small" @click="uploadConfirm">上传音频</Button> -->
             </template>
             <div class="data-check">得分：{{ totalResult.score }}</div>
@@ -124,8 +124,7 @@
               :mask-closable="false"
               :closable="false"
               :scrollable="true"
-              :loading="addDistributorLoading"
-              @on-ok="voiceDataCheck('newReport')">
+              :loading="addDistributorLoading">
               <Form ref="newReport" :model="newReport" :rules="newReportRule" :label-width="100">
                 <FormItem  class="imput-small" label="报表名称" prop="newReportName">
                   <Input :disabled="inputDisabled" v-model="newReport.newReportName">
@@ -187,6 +186,10 @@
                   </RadioGroup>
                 </FormItem>
               </Form>
+              <div slot="footer">
+                <Button type="error" @click="voiceDataCheckCancel('newReport')">取消</Button>
+                <Button type="success" @click="voiceDataCheck('newReport')">开始检查</Button>
+              </div>
             </Modal>
           </div>
           <Modal
@@ -399,10 +402,9 @@
     },
     methods: {
       beforeUpload (file) {
-        console.log(file)
+        // console.log(file)
       },
       uploadFormatError (file) {
-        console.log(file)
         this.$Notice.warning({
           title: '文件格式不正确',
           desc: '文件 ' + file.name + ' 格式不正确'
@@ -496,17 +498,17 @@
         }, 1000)
       },
       voiceDataCheckConfirm (name) {
-        this.$refs[name].resetFields()
+        // this.$refs[name].resetFields()
         this.voiceDataCheckDialog = true
-        this.newReport.fileName = null
-        this.newReport.channel = null
-        this.newReport.channelType = null
-        this.newReport.wavType = null
-        this.newReport.samplerate = null
-        this.newReport.voiceDataStatus = '0'
-        this.uploadPercent = null
-        this.newReport.newReportName = null
-        this.inputDisabled = false
+        // this.newReport.fileName = null
+        // this.newReport.channel = null
+        // this.newReport.channelType = null
+        // this.newReport.wavType = null
+        // this.newReport.samplerate = null
+        // this.newReport.voiceDataStatus = '0'
+        // this.uploadPercent = null
+        // this.newReport.newReportName = null
+        // this.inputDisabled = false
       },
       uploadConfirm () {
         this.uploadDialog = true
@@ -563,6 +565,10 @@
           console.log(e)
         }
       },
+      voiceDataCheckCancel (name) {
+        this.$refs[name].resetFields()
+        this.voiceDataCheckDialog = false
+      },
       voiceDataCheck (name) {
         this.$refs[name].validate(async (valid) => {
           if (valid) {
@@ -605,8 +611,9 @@
               console.log(e)
             }
           } else {
-            this.addDistributorLoading = false
             this.$Message.error('请将参数填写完整!')
+            this.voiceDataCheckDialog = true
+            this.addDistributorLoading = false
           }
         })
       },
