@@ -124,28 +124,41 @@
                   <Input :disabled="inputDisabled" v-model="newReport.newReportName">
                   </Input>
                 </FormItem>
-                <FormItem class="imput-small" label="是否要上传音频" prop="voiceDataStatus">
-                  <RadioGroup type="button" @on-change="uploadChange" v-model="newReport.voiceDataStatus">
-                    <Radio label="1">是</Radio>
-                    <Radio label="0">否</Radio>
-                  </RadioGroup>
-                </FormItem>
+                <Row>
+                  <Col span="11">
+                    <FormItem class="imput-small" label="是否要上传音频" prop="voiceDataStatus">
+                      <RadioGroup type="button" @on-change="uploadChange" v-model="newReport.voiceDataStatus">
+                        <Radio label="1">是</Radio>
+                        <Radio label="0">否</Radio>
+                      </RadioGroup>
+                    </FormItem>
+                  </Col>
+                  <Col span="11">
+                    <FormItem class="imput-path" label="选择上传音频" v-if="newReport.newReportName && newReport.voiceDataStatus === '1'">
+                      <Upload
+                        multiple
+                        :on-success="uploadSuccess"
+                        :before-upload="beforeUpload"
+                        :on-progress="uploading"
+                        :format="['mp3','wav','pcm']"
+                        :on-format-error="uploadFormatError"
+                        :show-upload-list="false"
+                        :action="uploadURL">
+                        <Button type="ghost" icon="ios-cloud-upload-outline">选择音频文件</Button>
+                        {{ fileName }}<Progress v-if="uploadPercent" :percent="uploadPercent" :stroke-width="5"></Progress>
+                      </Upload>
+                    </FormItem>
+                  </Col>
+                </Row>
                 <FormItem class="imput-path" label="语音路径" prop="newVoiceDataPath" v-if="newReport.voiceDataStatus === '0'">
                   <Input v-model="newReport.newVoiceDataPath"></Input>
                 </FormItem>
-                <FormItem class="imput-path" label="上传音频" v-if="newReport.newReportName && newReport.voiceDataStatus === '1'">
-                  <Upload
-                    multiple
-                    :on-success="uploadSuccess"
-                    :before-upload="beforeUpload"
-                    :on-progress="uploading"
-                    :format="['mp3','wav','pcm']"
-                    :on-format-error="uploadFormatError"
-                    :show-upload-list="false"
-                    :action="uploadURL">
-                    <Button type="ghost" icon="ios-cloud-upload-outline">请选择要上传的音频</Button>
-                    {{ fileName }}<Progress v-if="uploadPercent" :percent="uploadPercent" :stroke-width="5"></Progress>
-                  </Upload>
+                <FormItem label="选择模式" prop="checkMode">
+                  <RadioGroup v-model="newReport.checkMode" type="button">
+                    <Radio label="0">宽松</Radio>
+                    <Radio label="1">一般</Radio>
+                    <Radio label="2">严格</Radio>
+                  </RadioGroup>
                 </FormItem>
                 <Row>
                   <Col span="11">
@@ -182,13 +195,6 @@
                     </FormItem>
                   </Col>
                 </Row>
-                <FormItem label="选择模式" prop="checkMode">
-                  <RadioGroup v-model="newReport.checkMode" type="button">
-                    <Radio label="0">宽松</Radio>
-                    <Radio label="1">一般</Radio>
-                    <Radio label="2">严格</Radio>
-                  </RadioGroup>
-                </FormItem>
               </Form>
               <div slot="footer">
                 <Button type="error" @click="voiceDataCheckCancel('newReport')">取消</Button>
