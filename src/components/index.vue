@@ -43,7 +43,7 @@
               经销商： {{ currentDistributorName.name }}
               <Button type="error" class="check-button" size="small" @click="deleteDistrubutorConfirm">删除该经销商</Button>
               <Button type="primary" class="delete-button" size="small" @click="backToDistrubutorList">返回经销商列表</Button>
-              <Button type="primary" class="delete-button" size="small" @click="voiceDataCheckConfirm">检查</Button>
+              <Button type="primary" class="delete-button" size="small" @click="voiceDataCheckConfirm('newReport')">检查</Button>
               <!-- <Button type="primary" class="delete-button" size="small" @click="uploadConfirm">上传音频</Button> -->
             </template>
             <div class="data-check">得分：{{ totalResult.score }}</div>
@@ -125,85 +125,70 @@
               :closable="false"
               :scrollable="true"
               :loading="addDistributorLoading"
-              @on-ok="voiceDataCheck">
-              <div class="imput-small">
-                <Input :disabled="inputDisabled" v-model="newReportName">
-                  <span slot="prepend">报表名称</span>
-                </Input>
-              </div>
-              <div class="imput-small">
-                <RadioGroup v-model="voiceDataStatus" type="button" @on-change="uploadChange">
-                  <Radio disabled>是否要上传音频</Radio>
-                  <Radio label="1">是</Radio>
-                  <Radio label="0">否</Radio>
-                </RadioGroup>
-              </div>
-              <div class="imput-path" v-if="voiceDataStatus === '0'">
-                <Input v-model="newVoiceDataPath">
-                  <span slot="prepend">语音路径</span>
-                </Input>
-              </div>
-              <div class="imput-path" v-if="newReportName && voiceDataStatus === '1'">
-                <Upload
-                  multiple
-                  :on-success="uploadSuccess"
-                  :before-upload="beforeUpload"
-                  :on-progress="uploading"
-                  :format="['mp3','wav','pcm']"
-                  :on-format-error="uploadFormatError"
-                  :show-upload-list="false"
-                  :action="uploadURL">
-                  <Button type="ghost" icon="ios-cloud-upload-outline">请选择要上传的音频</Button>
-                  {{ fileName }}<Progress v-if="uploadPercent" :percent="uploadPercent" :stroke-width="5"></Progress>
-                </Upload>
-                <!-- <Button type="success" @click="StartPpload" :loading="loadingStatus">开始上传</Button> -->
-                <!-- <Card>
-                  <div v-if="file !== null">待上传文件：{{ file.name }}</div>
-                </Card> -->
-              </div>
-              <Select v-model="channel" class="select-small" placeholder="声道">
-                <Option v-for="item in channels" :value="item.value" :key="item.value">{{ item.label }}</Option>
-              </Select>
-              <Select v-model="samplerate" class="select-small" placeholder="采样率">
-                <Option v-for="item in samplerates" :value="item.value" :key="item.value">{{ item.label }}</Option>
-              </Select>
-              <Select v-model="channelType" class="select-small" placeholder="声道类型">
-                <Option v-for="item in channelTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
-              </Select>
-              <Select v-model="wavType" class="select-small" placeholder="语音格式">
-                <Option v-for="item in wavTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
-              </Select>
-              <RadioGroup v-model="checkMode" type="button">
-                <Radio disabled>选择模式</Radio>
-                <Radio label="0">宽松</Radio>
-                <Radio label="1">一般</Radio>
-                <Radio label="2">严格</Radio>
-              </RadioGroup>
+              @on-ok="voiceDataCheck('newReport')">
+              <Form ref="newReport" :model="newReport" :rules="newReportRule" :label-width="100">
+                <FormItem  class="imput-small" label="报表名称" prop="newReportName">
+                  <Input :disabled="inputDisabled" v-model="newReport.newReportName">
+                  </Input>
+                </FormItem>
+                <FormItem class="imput-small" label="是否要上传音频" prop="voiceDataStatus">
+                  <RadioGroup type="button" @on-change="uploadChange" v-model="newReport.voiceDataStatus">
+                    <Radio label="1">是</Radio>
+                    <Radio label="0">否</Radio>
+                  </RadioGroup>
+                </FormItem>
+                <FormItem class="imput-path" label="语音路径" prop="newVoiceDataPath" v-if="newReport.voiceDataStatus === '0'">
+                  <Input v-model="newReport.newVoiceDataPath"></Input>
+                </FormItem>
+                <FormItem class="imput-path" label="上传音频" v-if="newReport.newReportName && newReport.voiceDataStatus === '1'">
+                  <Upload
+                    multiple
+                    :on-success="uploadSuccess"
+                    :before-upload="beforeUpload"
+                    :on-progress="uploading"
+                    :format="['mp3','wav','pcm']"
+                    :on-format-error="uploadFormatError"
+                    :show-upload-list="false"
+                    :action="uploadURL">
+                    <Button type="ghost" icon="ios-cloud-upload-outline">请选择要上传的音频</Button>
+                    {{ fileName }}<Progress v-if="uploadPercent" :percent="uploadPercent" :stroke-width="5"></Progress>
+                  </Upload>
+                </FormItem>
+                <FormItem class="select-small" label="选择声道" prop="channel">
+                  <Select v-model="newReport.channel" placeholder="声道">
+                    <Option value="0">左声道</Option>
+                    <Option value="1">右声道</Option>
+                  </Select>
+                </FormItem>
+                <FormItem class="select-small" label="选择采样率" prop="samplerate">
+                  <Select v-model="newReport.samplerate" placeholder="采样率">
+                    <Option value="8000">8000</Option>
+                    <Option value="16000">16000</Option>
+                  </Select>
+                </FormItem>
+                <FormItem class="select-small" label="选择声道类型" prop="channelType">
+                  <Select v-model="newReport.channelType" placeholder="声道类型">
+                    <Option value="0">dep</Option>
+                    <Option value="1">mixed</Option>
+                  </Select>
+                </FormItem>
+                <FormItem class="select-small" label="选择音频格式" prop="wavType">
+                  <Select v-model="newReport.wavType" placeholder="语音格式">
+                    <Option value="0">wav</Option>
+                    <Option value="1">mp3</Option>
+                    <Option value="2">pcm</Option>
+                  </Select>
+                </FormItem>
+                <FormItem label="选择模式" prop="checkMode">
+                  <RadioGroup v-model="newReport.checkMode" type="button">
+                    <Radio label="0">宽松</Radio>
+                    <Radio label="1">一般</Radio>
+                    <Radio label="2">严格</Radio>
+                  </RadioGroup>
+                </FormItem>
+              </Form>
             </Modal>
           </div>
-          <!-- <div>
-            <el-dialog
-            title="音频检查"
-            :visible.sync="uploadDialog"
-            >
-
-            </el-dialog>
-          </div> -->
-          <!-- <Modal
-            v-model="uploadDialog"
-            title="上传"
-            :loading="voiceDataCheckLoading"
-            @on-ok="upload">
-            <Input class="imput-small" v-model="newVoiceDataPath">
-              <span slot="prepend">语音保存路径</span>
-            </Input>
-            <Upload
-              multiple
-              action="http://192.168.1.16:9100/createproject">
-              <Button type="ghost" icon="ios-cloud-upload-outline">请选择要上传的音频</Button>
-              <Button type="success" @click="StartPpload" :loading="loadingStatus">开始上传</Button>
-            </Upload>
-          </Modal> -->
           <Modal
             v-model="deleteDistrubutorDialog"
             title="删除"
@@ -240,7 +225,6 @@
         uploadPercent: null,
         voiceDataStatus: '0',
         uploadURL: null,
-        checkMode: '0',
         reportOption: {
           backgroundColor: 'rgb(229, 236, 225)',
           animationDuration: 1500,
@@ -296,54 +280,36 @@
             }
           ]
         },
-        channel: null,
-        channels: [
-          {
-            value: 0,
-            label: '左声道'
-          },
-          {
-            value: 1,
-            label: '右声道'
-          }
-        ],
-        samplerate: null,
-        samplerates: [
-          {
-            value: 8000,
-            label: '8000'
-          },
-          {
-            value: 16000,
-            label: '16000'
-          }
-        ],
-        channelType: null,
-        channelTypes: [
-          {
-            value: 0,
-            label: 'dep'
-          },
-          {
-            value: 1,
-            label: 'mixed'
-          }
-        ],
-        wavType: null,
-        wavTypes: [
-          {
-            value: 0,
-            label: 'wav'
-          },
-          {
-            value: 1,
-            label: 'mp3'
-          },
-          {
-            value: 3,
-            label: 'pcm'
-          }
-        ],
+        newReport: {
+          newReportName: null,
+          voiceDataStatus: '0',
+          newVoiceDataPath: null,
+          channel: null,
+          samplerate: null,
+          channelType: null,
+          wavType: null,
+          checkMode: '0'
+        },
+        newReportRule: {
+          newReportName: [
+            { required: true, message: '请先填写报表名称', trigger: 'blur' }
+          ],
+          newVoiceDataPath: [
+            { required: true, message: '请填写音频文件路径', trigger: 'blur' }
+          ],
+          channel: [
+            { required: true, message: '请选择声道', trigger: 'blur' }
+          ],
+          samplerate: [
+            { required: true, message: '请选择采样率', trigger: 'blur' }
+          ],
+          channelType: [
+            { required: true, message: '请选择声道类型', trigger: 'blur' }
+          ],
+          wavType: [
+            { required: true, message: '请选择音频格式', trigger: 'blur' }
+          ]
+        },
         score: 0,
         inputDisabled: false,
         showAllProject: true,
@@ -352,9 +318,6 @@
         newReportName: null,
         voiceDataCheckLoading: true,
         voiceDataCheckDialog: false,
-        dialogStyle: {
-          height: '500px'
-        },
         uploadDialog: false,
         deleteDistrubutorDialog: false,
         deleteProjectDialog: false,
@@ -450,11 +413,11 @@
       },
       uploadChange (value) {
         if (value === '1') {
-          if (this.newReportName) {
+          if (this.newReport.newReportName) {
             this.inputDisabled = true
-            this.uploadURL = this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.newReportName + '/upload'
+            this.uploadURL = this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.newReport.newReportName + '/upload'
           } else {
-            this.voiceDataStatus = '0'
+            this.newReport.voiceDataStatus = '0'
             this.$Message.warning('请先填写报表名称')
           }
         } else {
@@ -532,16 +495,18 @@
           }
         }, 1000)
       },
-      voiceDataCheckConfirm () {
+      voiceDataCheckConfirm (name) {
+        this.$refs[name].resetFields()
         this.voiceDataCheckDialog = true
-        this.fileName = null
-        this.channel = null
-        this.channelType = null
-        this.wavType = null
-        this.samplerate = null
-        this.voiceDataStatus = '0'
+        this.newReport.fileName = null
+        this.newReport.channel = null
+        this.newReport.channelType = null
+        this.newReport.wavType = null
+        this.newReport.samplerate = null
+        this.newReport.voiceDataStatus = '0'
         this.uploadPercent = null
-        this.newReportName = null
+        this.newReport.newReportName = null
+        this.inputDisabled = false
       },
       uploadConfirm () {
         this.uploadDialog = true
@@ -598,77 +563,52 @@
           console.log(e)
         }
       },
-      voiceDataCheck () {
-        setTimeout(async() => {
-          try {
-            if (this.newReportName === null) {
-              this.$Message.error('请填写报表名称')
-              this.addDistributorLoading = false
-            } else {
-              if (this.channel === null) {
-                this.$Message.error('请选择声道')
-                this.addDistributorLoading = false
+      voiceDataCheck (name) {
+        this.$refs[name].validate(async (valid) => {
+          if (valid) {
+            try {
+              let isUpload
+              let voiceDir
+              if (this.newReport.voiceDataStatus === '1') {
+                isUpload = 1
+                voiceDir = this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.newReport.newReportName
               } else {
-                if (this.channelType === null) {
-                  this.$Message.error('请选择声道类型')
-                  this.addDistributorLoading = false
-                } else {
-                  if (this.newVoiceDataPath === null) {
-                    this.$Message.error('请填写音频文件地址')
-                    this.addDistributorLoading = false
-                  } else {
-                    if (this.wavType === null) {
-                      this.$Message.error('请选择语音格式')
-                      this.addDistributorLoading = false
-                    } else {
-                      if (this.samplerate === null) {
-                        this.$Message.error('请选择采样率')
-                        this.addDistributorLoading = false
-                      } else {
-                        let isUpload
-                        let voiceDir
-                        if (this.voiceDataStatus === '1') {
-                          isUpload = 1
-                          voiceDir = this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.newReportName
-                        } else {
-                          isUpload = 0
-                          voiceDir = this.newVoiceDataPath
-                        }
-                        const res = await this.$http({
-                          method: 'POST',
-                          url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/createreport',
-                          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                          data: qs.stringify({
-                            report_name: this.newReportName,
-                            wav_dir: voiceDir,
-                            channel: this.channel,
-                            samplerate: this.samplerate,
-                            chan_type: this.channelType,
-                            wav_type: this.wavType,
-                            threshold: this.checkMode,
-                            isupload: isUpload
-                          })
-                        })
-                        if (res.data.code === 0) {
-                          this.$Message.success('开始检查')
-                          this.voiceDataCheckDialog = false
-                          this.getReport()
-                        } else {
-                          this.addDistributorLoading = false
-                          this.$Message.error(res.data.msg)
-                        }
-                      }
-                    }
-                  }
-                }
+                isUpload = 0
+                voiceDir = this.newReport.newVoiceDataPath
               }
+              const res = await this.$http({
+                method: 'POST',
+                url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/createreport',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                data: qs.stringify({
+                  report_name: this.newReport.newReportName,
+                  wav_dir: voiceDir,
+                  channel: this.newReport.channel,
+                  samplerate: this.newReport.samplerate,
+                  chan_type: this.newReport.channelType,
+                  wav_type: this.newReport.wavType,
+                  threshold: this.newReport.checkMode,
+                  isupload: isUpload
+                })
+              })
+              if (res.data.code === 0) {
+                this.$Message.success('开始检查')
+                this.voiceDataCheckDialog = false
+                this.getReport()
+              } else {
+                this.addDistributorLoading = false
+                this.$Message.error(res.data.msg)
+              }
+            } catch (e) {
+              this.voiceDataCheckDialog = false
+              this.$Message.error('发生错误，请查看日志')
+              console.log(e)
             }
-          } catch (e) {
-            this.voiceDataCheckDialog = false
-            this.$Message.error('发生错误，请查看日志')
-            console.log(e)
+          } else {
+            this.addDistributorLoading = false
+            this.$Message.error('请将参数填写完整!')
           }
-        }, 500)
+        })
       },
       deleteDistrubutor () {
         setTimeout(async() => {
@@ -1074,18 +1014,18 @@
     padding-bottom: 10px;
   }
   .select-small {
-    width: 48.8%;
-    margin-top: 5px;
+    width: 80%;
+    margin-top: 1px;
   }
   .imput-path {
-    width: 98.2%;
+    width: 80%;
     margin-top: 5px;
   }
   .imput-small {
-    width: 50%;
+    width: 80%;
     margin-top: 5px;
-    float: left;
-    margin-bottom: 5px;
+    /* float: left; */
+    margin-top: 5px;
     /* display: inline; */
   }
   .singleCall {
