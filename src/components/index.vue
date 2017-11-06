@@ -557,8 +557,9 @@
         }
       },
       voiceDataCheckCancel (name) {
-        this.$refs[name].resetFields()
+        this.inputDisabled = false
         this.voiceDataCheckDialog = false
+        this.$refs[name].resetFields()
       },
       voiceDataCheck (name) {
         this.$refs[name].validate(async (valid) => {
