@@ -415,9 +415,10 @@
       },
       uploadChange (value) {
         if (value === '1') {
-          if (this.newReport.newReportName) {
+          const reportName = this.newReport.newReportName.replace(/^\s+|\s+$/g, '')
+          if (reportName) {
             this.inputDisabled = true
-            this.uploadURL = this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.newReport.newReportName + '/upload'
+            this.uploadURL = this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + reportName + '/upload'
           } else {
             this.newReport.voiceDataStatus = '0'
             this.$Message.warning('请先填写报表名称')
@@ -498,17 +499,7 @@
         }, 1000)
       },
       voiceDataCheckConfirm (name) {
-        // this.$refs[name].resetFields()
         this.voiceDataCheckDialog = true
-        // this.newReport.fileName = null
-        // this.newReport.channel = null
-        // this.newReport.channelType = null
-        // this.newReport.wavType = null
-        // this.newReport.samplerate = null
-        // this.newReport.voiceDataStatus = '0'
-        // this.uploadPercent = null
-        // this.newReport.newReportName = null
-        // this.inputDisabled = false
       },
       uploadConfirm () {
         this.uploadDialog = true
@@ -575,9 +566,10 @@
             try {
               let isUpload
               let voiceDir
+              const reportName = this.newReport.newReportName.replace(/^\s+|\s+$/g, '')
               if (this.newReport.voiceDataStatus === '1') {
                 isUpload = 1
-                voiceDir = this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + this.newReport.newReportName
+                voiceDir = this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + reportName
               } else {
                 isUpload = 0
                 voiceDir = this.newReport.newVoiceDataPath
@@ -587,7 +579,7 @@
                 url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/createreport',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 data: qs.stringify({
-                  report_name: this.newReport.newReportName,
+                  report_name: reportName,
                   wav_dir: voiceDir,
                   channel: this.newReport.channel,
                   samplerate: this.newReport.samplerate,
