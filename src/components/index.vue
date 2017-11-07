@@ -133,23 +133,21 @@
                       </RadioGroup>
                     </FormItem>
                   </Col>
-                  <Col span="11">
-                    <FormItem class="imput-path" label="选择上传音频" v-if="newReport.newReportName && newReport.voiceDataStatus === '1'">
-                      <Upload
-                        multiple
-                        :on-success="uploadSuccess"
-                        :before-upload="beforeUpload"
-                        :on-progress="uploading"
-                        :format="['mp3','wav','pcm']"
-                        :on-format-error="uploadFormatError"
-                        :show-upload-list="false"
-                        :action="uploadURL">
-                        <Button type="ghost" icon="ios-cloud-upload-outline">选择音频文件</Button>
-                        {{ fileName }}<Progress v-if="uploadPercent" :percent="uploadPercent" :stroke-width="5"></Progress>
-                      </Upload>
-                    </FormItem>
-                  </Col>
                 </Row>
+                <FormItem class="imput-path" label="选择上传音频" v-if="newReport.newReportName && newReport.voiceDataStatus === '1'">
+                  <Upload
+                    multiple
+                    :on-success="uploadSuccess"
+                    :before-upload="beforeUpload"
+                    :on-progress="uploading"
+                    :format="['mp3','wav','pcm']"
+                    :on-format-error="uploadFormatError"
+                    :show-upload-list="false"
+                    :action="uploadURL">
+                    <Button type="ghost" icon="ios-cloud-upload-outline">选择音频文件</Button>
+                    {{ fileName }}<Progress v-if="uploadPercent" :percent="uploadPercent" :stroke-width="5"></Progress>
+                  </Upload>
+                </FormItem>
                 <FormItem class="imput-path" label="语音路径" prop="newVoiceDataPath" v-if="newReport.voiceDataStatus === '0'">
                   <Input v-model="newReport.newVoiceDataPath"></Input>
                 </FormItem>
