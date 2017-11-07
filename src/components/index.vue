@@ -114,14 +114,7 @@
             </Input>
           </Modal>
           <div class="upload-div">
-            <Modal
-              class-name="upload-dialog"
-              v-model="voiceDataCheckDialog"
-              title="音频检查"
-              :mask-closable="false"
-              :closable="false"
-              :scrollable="true"
-              :loading="addDistributorLoading">
+            <Card v-if="voiceDataCheckDialog">
               <Form ref="newReport" :model="newReport" :rules="newReportRule" :label-width="100">
                 <FormItem  class="imput-small" label="报表名称" prop="newReportName">
                   <Input :disabled="inputDisabled" v-model="newReport.newReportName">
@@ -136,21 +129,10 @@
                       </RadioGroup>
                     </FormItem>
                   </Col>
+                  <Col span="11">
+                    <Button v-if="newReport.newReportName && newReport.voiceDataStatus === '1'" type="ghost" icon="ios-cloud-upload-outline" @click="uploadConfirm">上传音频文件</Button>
+                  </Col>
                 </Row>
-                <FormItem class="imput-path" label="选择上传音频" v-if="newReport.newReportName && newReport.voiceDataStatus === '1'">
-                  <Upload
-                    multiple
-                    :on-success="uploadSuccess"
-                    :before-upload="beforeUpload"
-                    :on-progress="uploading"
-                    :format="['mp3','wav','pcm']"
-                    :on-format-error="uploadFormatError"
-                    :show-upload-list="false"
-                    :action="uploadURL">
-                    <Button type="ghost" icon="ios-cloud-upload-outline">选择音频文件</Button>
-                    {{ fileName }}<Progress v-if="uploadPercent" :percent="uploadPercent" :stroke-width="5"></Progress>
-                  </Upload>
-                </FormItem>
                 <FormItem class="imput-path" label="语音路径" prop="newVoiceDataPath" v-if="newReport.voiceDataStatus === '0'">
                   <Input v-model="newReport.newVoiceDataPath"></Input>
                 </FormItem>
@@ -197,11 +179,11 @@
                   </Col>
                 </Row>
               </Form>
-              <div slot="footer">
-                <Button type="error" @click="voiceDataCheckCancel('newReport')">取消</Button>
-                <Button type="success" @click="voiceDataCheck('newReport')">开始检查</Button>
+              <div class="food-button">
+              <Button type="error" @click="voiceDataCheckCancel('newReport')">取消检查</Button>
+              <Button type="success" @click="voiceDataCheck('newReport')">开始检查</Button>
               </div>
-            </Modal>
+            </Card>
           </div>
           <Modal
             v-model="deleteDistrubutorDialog"
@@ -224,6 +206,32 @@
             @on-ok="deleteReport">
             是否删除该报表？一经删除，即不可恢复。
           </Modal>
+          <el-dialog @close="cancelUpload" :close-on-click-modal="false" :visible.sync="uploadDialog">
+            <Col class="upload-dialog">
+              <el-upload
+                ref="upload"
+                multiple
+                :before-upload="beforeUpload"
+                :action="uploadURL"
+                :auto-upload="false">
+                <el-button slot="trigger" size="small" type="primary">选取音频文件</el-button>
+                <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>
+                <div slot="tip" class="el-upload__tip">请选择正确格式的音频文件</div>
+              </el-upload>
+              <!-- <Upload
+                multiple
+                :on-success="uploadSuccess"
+                :before-upload="beforeUpload"
+                :on-progress="uploading"
+                :format="['mp3','wav','pcm']"
+                :on-format-error="uploadFormatError"
+                :show-upload-list="false"
+                :action="uploadURL">
+                <Button type="ghost" icon="ios-cloud-upload-outline">选择音频文件</Button>
+                {{ fileName }}<Progress v-if="uploadPercent" :percent="uploadPercent" :stroke-width="5"></Progress>
+              </Upload> -->
+            </Col>
+          </el-dialog>
         </div>
       </Col>
     </div>
@@ -412,8 +420,14 @@
       }
     },
     methods: {
+      cancelUpload () {
+        this.$refs.upload.clearFiles()
+      },
+      submitUpload () {
+        this.$refs.upload.submit()
+      },
       beforeUpload (file) {
-        // console.log(file)
+        console.log(this.uploadFileList)
       },
       uploadFormatError (file) {
         this.$Notice.warning({
@@ -438,6 +452,9 @@
         } else {
           this.inputDisabled = false
         }
+      },
+      uploadConfirm () {
+        this.uploadDialog = true
       },
       uploading (file, event, fileList) {
         // console.log(file)
@@ -516,11 +533,11 @@
         }, 1000)
       },
       voiceDataCheckConfirm (name) {
-        this.$refs[name].resetFields()
+        this.showReportForm = false
+        this.voiceDataCheckDialog = true
         this.inputDisabled = false
         this.fileName = null
         this.uploadPercent = null
-        this.voiceDataCheckDialog = true
       },
       deleteDistrubutorConfirm () {
         this.deleteDistrubutorDialog = true
@@ -574,10 +591,11 @@
           console.log(e)
         }
       },
-      voiceDataCheckCancel (name) {
+      voiceDataCheckCancel (newReport) {
         this.inputDisabled = false
+        this.$refs.newReport.resetFields()
         this.voiceDataCheckDialog = false
-        this.$refs[name].resetFields()
+        this.showReportForm = true
       },
       voiceDataCheck (name) {
         this.$refs[name].validate(async (valid) => {
@@ -610,7 +628,9 @@
               })
               if (res.data.code === 0) {
                 this.$Message.success('开始检查')
+                this.$refs.newReport.resetFields()
                 this.voiceDataCheckDialog = false
+                this.showReportForm = true
                 this.getReport()
               } else {
                 this.addDistributorLoading = false
@@ -900,6 +920,7 @@
         this.showSecondChart = false
         this.showReportForm = false
         this.showAllProject = false
+        this.voiceDataCheckDialog = false
         this.currentProjectName['name'] = this.allProjects[name].name
         this.currentProjectName['id'] = name
         this.currentDistributorName = {}
@@ -1051,10 +1072,14 @@
     margin-left: 60px;
   }
   .upload-dialog {
-    max-height: 500px;
+    height: 500px;
+    overflow: auto;
   }
   .upload-div {
-    max-height: 500px;
-    overflow: visible;
+    width: 65%;
+  }
+  .food-button {
+    margin-left: 35%;
+    padding: 20px;
   }
 </style>
