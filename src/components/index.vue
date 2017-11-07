@@ -430,6 +430,7 @@
             const reportName = this.newReport.newReportName.replace(/^\s+|\s+$/g, '')
             this.uploadURL = this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + reportName + '/upload'
           } else {
+            this.inputDisabled = false
             this.newReport.voiceDataStatus = '0'
             this.$Message.warning('请先填写报表名称')
           }
@@ -510,6 +511,7 @@
       },
       voiceDataCheckConfirm (name) {
         this.$refs[name].resetFields()
+        this.fileName = null
         this.voiceDataCheckDialog = true
       },
       deleteDistrubutorConfirm () {
