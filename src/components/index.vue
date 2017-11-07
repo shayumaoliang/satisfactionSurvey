@@ -130,7 +130,7 @@
                     </FormItem>
                   </Col>
                   <Col span="11">
-                    <Button v-if="newReport.newReportName && newReport.voiceDataStatus === '1'" type="ghost" icon="ios-cloud-upload-outline" @click="uploadConfirm">上传音频文件</Button>
+                    <Button v-if="newReport.newReportName && newReport.voiceDataStatus === '1'" type="info" icon="ios-cloud-upload-outline" @click="uploadConfirm">上传音频文件</Button>
                   </Col>
                 </Row>
                 <FormItem class="imput-path" label="语音路径" prop="newVoiceDataPath" v-if="newReport.voiceDataStatus === '0'">
@@ -218,18 +218,6 @@
                 <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>
                 <div slot="tip" class="el-upload__tip">请选择正确格式的音频文件</div>
               </el-upload>
-              <!-- <Upload
-                multiple
-                :on-success="uploadSuccess"
-                :before-upload="beforeUpload"
-                :on-progress="uploading"
-                :format="['mp3','wav','pcm']"
-                :on-format-error="uploadFormatError"
-                :show-upload-list="false"
-                :action="uploadURL">
-                <Button type="ghost" icon="ios-cloud-upload-outline">选择音频文件</Button>
-                {{ fileName }}<Progress v-if="uploadPercent" :percent="uploadPercent" :stroke-width="5"></Progress>
-              </Upload> -->
             </Col>
           </el-dialog>
         </div>
@@ -239,7 +227,6 @@
 </template>
 <script>
   const qs = require('qs')
-  // const echarts = require('echarts')
   export default {
     data () {
       return {
