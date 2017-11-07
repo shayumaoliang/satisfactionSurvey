@@ -509,6 +509,7 @@
       },
       voiceDataCheckConfirm (name) {
         this.$refs[name].resetFields()
+        this.inputDisabled = false
         this.fileName = null
         this.voiceDataCheckDialog = true
       },
