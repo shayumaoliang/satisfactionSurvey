@@ -52,7 +52,10 @@
               报表
             </h2>
             <span>*双击查看图表*</span>
-            <Table height="450" :columns="reportFormColumn" :data="reportFormData" @on-row-dblclick="showReportFormDetail"></Table>
+            <Button type="primary" class="check-button" size="small" @click="getReport">刷新报表</Button>
+            <div style="margin-top: 10px;">
+              <Table height="450" :columns="reportFormColumn" :data="reportFormData" @on-row-dblclick="showReportFormDetail"></Table>
+            </div>
           </Card>
           <Card v-if="showFirstChart">
             <template slot="title">
@@ -441,6 +444,11 @@
         // console.log(event)
         // console.log(fileList)
         this.fileName = event.name
+        // if (file.percent === 100) {
+        //   const percent = ''
+        //   this.uploadPercent.push(percent)
+        // }
+        console.log(event)
         this.uploadPercent = file.percent
       },
       StartPpload () {
