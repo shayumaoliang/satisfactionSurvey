@@ -511,6 +511,7 @@
         this.$refs[name].resetFields()
         this.inputDisabled = false
         this.fileName = null
+        this.uploadPercent = null
         this.voiceDataCheckDialog = true
       },
       deleteDistrubutorConfirm () {
