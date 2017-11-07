@@ -51,10 +51,9 @@
             <h2 class="title">
               报表
             </h2>
-            <span>*双击查看图表*</span>
-            <Button type="primary" class="check-button" size="small" @click="getReport">刷新报表</Button>
+            <span>*双击查看图表*<Button class="refresh-button" type="primary" size="small" @click="getReport">刷新报表</Button></span>
             <div style="margin-top: 10px;">
-              <Table height="450" :columns="reportFormColumn" :data="reportFormData" @on-row-dblclick="showReportFormDetail"></Table>
+              <Table height="450" border :columns="reportFormColumn" :data="reportFormData" @on-row-dblclick="showReportFormDetail"></Table>
             </div>
           </Card>
           <Card v-if="showFirstChart">
@@ -339,7 +338,7 @@
         showFirstChart: false,
         reportFormColumn: [
           {
-            title: '报告名称',
+            title: '报表名称',
             key: 'reportName'
           },
           {
@@ -362,6 +361,8 @@
             title: '操作',
             key: 'action',
             fixed: 'right',
+            width: 150,
+            align: 'center',
             render: (h, params) => {
               return h('div', [
                 h('Button', {
@@ -1068,5 +1069,8 @@
   .food-button {
     margin-left: 35%;
     padding: 20px;
+  }
+  .refresh-button {
+    margin-left: 65%;
   }
 </style>
