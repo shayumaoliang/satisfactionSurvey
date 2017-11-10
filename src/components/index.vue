@@ -207,7 +207,6 @@
           </Modal>
           <el-dialog
           width="45%"
-          @close="cancelUpload"
           :close-on-click-modal="false"
           :close-on-press-escape="false"
           :show-close="false"
@@ -456,7 +455,7 @@
       },
       allUploadComplete () {
         if (this.uploadSuccessNum.length === 0) {
-          this.$Message.warning('未上传成功任何文件')
+          this.$Message.warning('请先上传文件')
         } else {
           if (this.uploadSuccessNum.length === this.allUploadLength) {
             this.uploadDialog = false
