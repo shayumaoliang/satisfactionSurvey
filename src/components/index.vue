@@ -437,9 +437,11 @@
             this.allUploadLength = null
             this.uploadSuccessNum = []
           } else {
+            this.$Message.error('发出错误，请查看日志')
             console.log(res.data.msg)
           }
         } catch (e) {
+          this.$Message.error('发出错误，请查看日志')
           console.log(e)
         }
       },
@@ -493,12 +495,24 @@
           desc: '文件 ' + file.name + ' 格式不正确'
         })
       },
-      uploadChange (value) {
+      async uploadChange (value) {
         if (value === '1') {
           if (this.newReport.newReportName) {
-            this.inputDisabled = true
             const reportName = this.newReport.newReportName.replace(/^\s+|\s+$/g, '')
-            this.uploadURL = this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + reportName + '/upload'
+            const res = await this.$http({
+              method: 'GET',
+              url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/checkreportexist?report_name=' + reportName
+            })
+            if (res.data.code === 0) {
+              this.inputDisabled = true
+              this.uploadURL = this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + reportName + '/upload'
+            } else {
+              if (res.data.code === 308) {
+                this.inputDisabled = false
+                this.newReport.voiceDataStatus = '0'
+                this.$Message.warning('报表名称重复，请更换')
+              }
+            }
           } else {
             this.inputDisabled = false
             this.newReport.voiceDataStatus = '0'
