@@ -205,19 +205,33 @@
             @on-ok="deleteReport">
             是否删除该报表？一经删除，即不可恢复。
           </Modal>
-          <el-dialog @close="cancelUpload" :close-on-click-modal="false" :visible.sync="uploadDialog">
+          <el-dialog
+          width="45%"
+          @close="cancelUpload"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+          :show-close="false"
+          :visible.sync="uploadDialog">
             <Col class="upload-dialog">
               <el-upload
                 ref="upload"
                 multiple
+                :on-success="uploadSuccess"
+                :on-change="uploadFileChange"
+                :on-remove="uploadFileRemove"
                 :before-upload="beforeUpload"
                 :action="uploadURL"
                 :auto-upload="false">
                 <el-button slot="trigger" size="small" type="primary">选取音频文件</el-button>
-                <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>
+                <el-button style="margin-left: 10px;" size="small" type="primary" @click="submitUpload">上传到服务器</el-button>
                 <div slot="tip" class="el-upload__tip">请选择正确格式的音频文件</div>
               </el-upload>
             </Col>
+            <div slot="footer">
+              <span style="margin-right: 20px;">总共选取 {{ allUploadLength }} 个文件，已上传 {{ uploadSuccessNum.length }} 个文件</span>
+              <el-button size="small" type="primary" @click="cancelUpload">取消上传</el-button>
+              <el-button size="small" type="success" @click="allUploadComplete">完成上传</el-button>
+            </div>
           </el-dialog>
         </div>
       </Col>
@@ -404,27 +418,77 @@
         currentCall: null,
         download: null,
         file: [],
-        loadingStatus: false
+        loadingStatus: false,
+        uploadSuccessNum: [],
+        allUploadLength: null
       }
     },
     methods: {
-      cancelUpload () {
-        this.$refs.upload.clearFiles()
+      async cancelUpload () {
+        try {
+          const reportName = this.newReport.newReportName.replace(/^\s+|\s+$/g, '')
+          const res = await this.$http({
+            method: 'GET',
+            url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + reportName + '/cancelupload'
+          })
+          if (res.data.code === 0) {
+            this.$refs.upload.abort()
+            this.$refs.upload.clearFiles()
+            this.uploadDialog = false
+            this.allUploadLength = null
+            this.uploadSuccessNum = []
+          } else {
+            console.log(res.data.msg)
+          }
+        } catch (e) {
+          console.log(e)
+        }
+      },
+      uploadSuccess (response, file, fileList) {
+        if (response.code === 0) {
+          this.uploadSuccessNum.push(response.code)
+        } else {
+          if (response.code === 211) {
+            this.$Message.error('上传文件格式错误，请自己检查')
+          }
+          this.$Message.error(response.msg)
+        }
+      },
+      allUploadComplete () {
+        if (this.uploadSuccessNum.length === 0) {
+          this.$Message.warning('未上传成功任何文件')
+        } else {
+          if (this.uploadSuccessNum.length === this.allUploadLength) {
+            this.uploadDialog = false
+            this.$Message.success('上传成功')
+            this.allUploadLength = null
+            this.uploadSuccessNum = []
+          } else {
+            this.$Message.error('请等待所有文件上传完毕')
+          }
+        }
       },
       submitUpload () {
         this.$refs.upload.submit()
       },
+      uploadFileChange (file, fileList) {
+        this.allUploadLength = fileList.length
+      },
+      uploadFileRemove (file, fileList) {
+        this.allUploadLength = fileList.length
+      },
       beforeUpload (file) {
-        console.log(this.uploadFileList)
+        const isAudio = file.type.split('/')[0]
+        if (isAudio !== 'audio') {
+          this.$Message.error('只能上传音频文件')
+          return false
+        }
       },
       uploadFormatError (file) {
         this.$Notice.warning({
           title: '文件格式不正确',
           desc: '文件 ' + file.name + ' 格式不正确'
         })
-      },
-      uploadSuccess () {
-
       },
       uploadChange (value) {
         if (value === '1') {
@@ -453,7 +517,6 @@
         //   const percent = ''
         //   this.uploadPercent.push(percent)
         // }
-        console.log(event)
         this.uploadPercent = file.percent
       },
       StartPpload () {
@@ -1060,7 +1123,7 @@
     margin-left: 60px;
   }
   .upload-dialog {
-    height: 500px;
+    height: 400px;
     overflow: auto;
   }
   .upload-div {
