@@ -419,7 +419,8 @@
         file: [],
         loadingStatus: false,
         uploadSuccessNum: [],
-        allUploadLength: null
+        allUploadLength: null,
+        isUploaded: false
       }
     },
     methods: {
@@ -462,6 +463,7 @@
           if (this.uploadSuccessNum.length === this.allUploadLength) {
             this.uploadDialog = false
             this.$Message.success('上传成功')
+            this.isUploaded = true
             this.allUploadLength = null
             this.uploadSuccessNum = []
           } else {
@@ -528,25 +530,6 @@
       },
       uploadConfirm () {
         this.uploadDialog = true
-      },
-      uploading (file, event, fileList) {
-        // console.log(file)
-        // console.log(event)
-        // console.log(fileList)
-        this.fileName = event.name
-        // if (file.percent === 100) {
-        //   const percent = ''
-        //   this.uploadPercent.push(percent)
-        // }
-        this.uploadPercent = file.percent
-      },
-      StartPpload () {
-        this.loadingStatus = true
-        setTimeout(() => {
-          this.file = null
-          this.loadingStatus = false
-          this.$Message.success('上传成功')
-        }, 1500)
       },
       addDistributorConfirm () {
         this.addDistributorName = null
@@ -670,55 +653,59 @@
         this.showReportForm = true
       },
       voiceDataCheck (name) {
-        this.$refs[name].validate(async (valid) => {
-          if (valid) {
-            try {
-              let isUpload
-              let voiceDir
-              const reportName = this.newReport.newReportName.replace(/^\s+|\s+$/g, '')
-              if (this.newReport.voiceDataStatus === '1') {
-                isUpload = 1
-                voiceDir = this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + reportName
-              } else {
-                isUpload = 0
-                voiceDir = this.newReport.newVoiceDataPath
-              }
-              const res = await this.$http({
-                method: 'POST',
-                url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/createreport',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                data: qs.stringify({
-                  report_name: reportName,
-                  wav_dir: voiceDir,
-                  channel: this.newReport.channel,
-                  samplerate: this.newReport.samplerate,
-                  chan_type: this.newReport.channelType,
-                  wav_type: this.newReport.wavType,
-                  threshold: this.newReport.checkMode,
-                  isupload: isUpload
+        if (this.newReport.voiceDataStatus === '1' && this.isUploaded === false) {
+          this.$Message.error('请先上传文件，或者选择文件位置')
+        } else {
+          this.$refs[name].validate(async (valid) => {
+            if (valid) {
+              try {
+                let isUpload
+                let voiceDir
+                const reportName = this.newReport.newReportName.replace(/^\s+|\s+$/g, '')
+                if (this.newReport.voiceDataStatus === '1') {
+                  isUpload = 1
+                  voiceDir = this.currentProjectName.name + '/' + this.currentDistributorName.name + '/' + reportName
+                } else {
+                  isUpload = 0
+                  voiceDir = this.newReport.newVoiceDataPath
+                }
+                const res = await this.$http({
+                  method: 'POST',
+                  url: this.$apiUrl + '/' + this.currentProjectName.name + '/' + this.currentDistributorName.name + '/createreport',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                  data: qs.stringify({
+                    report_name: reportName,
+                    wav_dir: voiceDir,
+                    channel: this.newReport.channel,
+                    samplerate: this.newReport.samplerate,
+                    chan_type: this.newReport.channelType,
+                    wav_type: this.newReport.wavType,
+                    threshold: this.newReport.checkMode,
+                    isupload: isUpload
+                  })
                 })
-              })
-              if (res.data.code === 0) {
-                this.$Message.success('开始检查')
-                this.$refs.newReport.resetFields()
+                if (res.data.code === 0) {
+                  this.$Message.success('开始检查')
+                  this.$refs.newReport.resetFields()
+                  this.voiceDataCheckDialog = false
+                  this.showReportForm = true
+                  this.getReport()
+                } else {
+                  this.addDistributorLoading = false
+                  this.$Message.error(res.data.msg)
+                }
+              } catch (e) {
                 this.voiceDataCheckDialog = false
-                this.showReportForm = true
-                this.getReport()
-              } else {
-                this.addDistributorLoading = false
-                this.$Message.error(res.data.msg)
+                this.$Message.error('发生错误，请查看日志')
+                console.log(e)
               }
-            } catch (e) {
-              this.voiceDataCheckDialog = false
-              this.$Message.error('发生错误，请查看日志')
-              console.log(e)
+            } else {
+              this.$Message.error('请将参数填写完整!')
+              this.voiceDataCheckDialog = true
+              this.addDistributorLoading = false
             }
-          } else {
-            this.$Message.error('请将参数填写完整!')
-            this.voiceDataCheckDialog = true
-            this.addDistributorLoading = false
-          }
-        })
+          })
+        }
       },
       deleteDistrubutor () {
         setTimeout(async() => {
