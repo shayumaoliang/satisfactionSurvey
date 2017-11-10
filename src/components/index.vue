@@ -478,9 +478,13 @@
       },
       beforeUpload (file) {
         const isAudio = file.type.split('/')[0]
-        if (isAudio !== 'audio') {
-          this.$Message.error('只能上传音频文件')
-          return false
+        const name = file.name.split('.')
+        const isPcm = name[name.length - 1]
+        if (isPcm !== 'pcm') {
+          if (isAudio !== 'audio') {
+            this.$Message.error('只能上传音频文件')
+            return false
+          }
         }
       },
       uploadFormatError (file) {
