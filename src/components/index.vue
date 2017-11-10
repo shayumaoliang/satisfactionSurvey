@@ -511,6 +511,10 @@
                 this.inputDisabled = false
                 this.newReport.voiceDataStatus = '0'
                 this.$Message.warning('报表名称重复，请更换')
+              } else {
+                this.inputDisabled = false
+                this.newReport.voiceDataStatus = '0'
+                this.$Message.warning(res.data.msg)
               }
             }
           } else {
